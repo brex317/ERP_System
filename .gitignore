@@ -1,0 +1,39 @@
+# Node dependencies & package locks
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Angular build output
+.angular/
+dist/
+out-tsc/
+
+# .NET / C# Build output
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+*.user
+*.userosscache
+
+# IDEs & Editors
+.vs/
+.vscode/
+.idea/
+*.swp
+*~
+
+# Operating System Files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Logs & Temp files
+*.log
+login.json
