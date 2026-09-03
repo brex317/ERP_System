@@ -37,3 +37,7 @@ Desktop.ini
 # Logs & Temp files
 *.log
 login.json
+"ConnectionStrings": {
+  "DefaultConnection": "REPLACE_WITH_LOCAL_CONFIG"
+}
+appsettings.Development.json
