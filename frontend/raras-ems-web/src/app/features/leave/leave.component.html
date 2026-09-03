@@ -1,0 +1,19 @@
+<div class="page-header">
+  <h1>Leave Management</h1>
+  <p>Manage employee leave requests.</p>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2>Leave Requests</h2>
+    <button class="primary-btn" (click)="newRequest()">
+      + New Request
+    </button>
+
+    <app-functionality-help [steps]="leaveHelpSteps"></app-functionality-help>
+  </div>
+
+  <div class="card-body">
+    Employee leave requests will appear here.
+  </div>
+</div>

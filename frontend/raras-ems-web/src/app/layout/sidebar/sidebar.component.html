@@ -1,0 +1,59 @@
+<aside class="sidebar" [class.open]="isOpen" id="sidebar">
+  <div class="logo">
+    RARAS
+    <span>EMS</span>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-title">Main</div>
+
+    <a class="nav-link" routerLink="/dashboard" routerLinkActive="active" (click)="onNavClick()">
+      <span class="nav-icon">▦</span>
+      Dashboard
+    </a>
+
+    <a class="nav-link" routerLink="/employees" routerLinkActive="active" (click)="onNavClick()">
+      <span class="nav-icon">👥</span>
+      Employees
+    </a>
+
+    <a class="nav-link" routerLink="/departments" routerLinkActive="active" (click)="onNavClick()">
+      <span class="nav-icon">🏢</span>
+      Departments
+    </a>
+
+    <a class="nav-link" routerLink="/attendance" routerLinkActive="active" (click)="onNavClick()">
+      <span class="nav-icon">📅</span>
+      Attendance
+    </a>
+
+    <a class="nav-link" routerLink="/leave" routerLinkActive="active" (click)="onNavClick()">
+      <span class="nav-icon">🏖</span>
+      Leave
+    </a>
+
+    <a class="nav-link" routerLink="/payroll" routerLinkActive="active" (click)="onNavClick()">
+      <span class="nav-icon">💰</span>
+      Payroll
+    </a>
+  </nav>
+
+  <div class="sidebar-support">
+    <div class="nav-title">Support</div>
+
+    <a class="nav-link" routerLink="/help" routerLinkActive="active" (click)="onNavClick()">
+      <span class="nav-icon">❓</span>
+      Help Center
+    </a>
+
+    <a class="nav-link" (click)="onNavClick()">
+      <span class="nav-icon">💬</span>
+      Contact Support
+    </a>
+
+    <a class="nav-link" (click)="onNavClick()">
+      <span class="nav-icon">⚙</span>
+      Settings
+    </a>
+  </div>
+</aside>

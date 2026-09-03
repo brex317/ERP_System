@@ -1,0 +1,18 @@
+<header class="header">
+  <div class="header-left">
+    <button class="mobile-menu" (click)="onToggleSidebar()">☰</button>
+    <div class="system-title">Dashboard</div>
+  </div>
+
+  <div class="header-right">
+    <input class="header-search" placeholder="Search...">
+
+    <button class="header-btn" routerLink="/help" title="Help Center">?</button>
+    <button class="header-btn" title="Notifications">🔔</button>
+
+    <div class="profile" *ngIf="currentUser">
+      <div class="avatar">{{ currentUser.initials }}</div>
+      <span>{{ currentUser.name }}</span>
+    </div>
+  </div>
+</header>
