@@ -1,4 +1,4 @@
-namespace Raras.EMS.API.Models;
+namespace Raras.EMS.API.Models.DTOs;
 
 public class DashboardStatsDto
 {
