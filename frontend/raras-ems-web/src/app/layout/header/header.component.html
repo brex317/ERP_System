@@ -10,9 +10,27 @@
     <button class="header-btn" routerLink="/help" title="Help Center">?</button>
     <button class="header-btn" title="Notifications">🔔</button>
 
-    <div class="profile" *ngIf="currentUser">
-      <div class="avatar">{{ currentUser.initials }}</div>
-      <span>{{ currentUser.name }}</span>
+    <div class="profile-container" *ngIf="currentUser">
+      <div class="profile" (click)="toggleProfileMenu()" tabindex="0" role="button" aria-haspopup="true">
+        <div class="avatar">{{ currentUser.initials }}</div>
+        <div class="profile-info">
+          <span class="user-name">{{ currentUser.name }}</span>
+          <span class="user-role">{{ currentUser.role }}</span>
+        </div>
+        <span class="dropdown-arrow">▾</span>
+      </div>
+
+      <div class="profile-dropdown" *ngIf="isProfileMenuOpen">
+        <div class="dropdown-header">
+          <p class="dropdown-name">{{ currentUser.name }}</p>
+          <p class="dropdown-email">{{ currentUser.email }}</p>
+          <span class="role-badge">{{ currentUser.role }}</span>
+        </div>
+        <div class="dropdown-divider"></div>
+        <button class="dropdown-item logout-btn" (click)="onLogout()">
+          <span class="logout-icon">🚪</span> Log Out
+        </button>
+      </div>
     </div>
   </div>
 </header>

@@ -1,17 +1,13 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
-export interface HelpStep {
-  number: number;
-  text: string;
-}
+import { HelpService, HelpStep } from '../../../core/services/help.service';
 
 @Component({
-  selector: 'app-functionality-help',
+  selector: 'app-functionality-help, app-need-help',
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="functionality-help">
+    <div class="functionality-help" [class.align-left]="align === 'left'">
       <span class="functionality-help-trigger" tabindex="0" aria-label="Need help">ⓘ Need help?</span>
       <div class="functionality-help-menu">
         <div class="functionality-help-title">{{ title }}</div>
@@ -30,6 +26,10 @@ export interface HelpStep {
         align-self: center;
         z-index: 20;
     }
+    .functionality-help.align-left {
+        margin-left: 0;
+        margin-right: auto;
+    }
     .functionality-help-trigger {
         display: inline-flex;
         align-items: center;
@@ -42,7 +42,7 @@ export interface HelpStep {
         font-weight: 600;
         line-height: 1.4;
         white-space: nowrap;
-        cursor: default;
+        cursor: pointer;
         text-decoration: none;
     }
     .functionality-help:hover .functionality-help-trigger,
@@ -66,6 +66,10 @@ export interface HelpStep {
         pointer-events: none;
         transition: opacity .16s ease, transform .16s ease, visibility .16s ease;
         z-index: 9999;
+    }
+    .functionality-help.align-left .functionality-help-menu {
+        right: auto;
+        left: 0;
     }
     .functionality-help:hover .functionality-help-menu,
     .functionality-help:focus-within .functionality-help-menu {
@@ -109,12 +113,40 @@ export interface HelpStep {
     }
   `]
 })
-export class FunctionalityHelpComponent {
+export class FunctionalityHelpComponent implements OnInit, OnChanges {
+  @Input() moduleKey: string = 'dashboard';
+  @Input() pageKey: string = 'overview';
+  @Input() functionalityKey: string = 'general';
   @Input() title: string = 'Quick steps';
-  @Input() steps: HelpStep[] = [
-    { number: 1, text: 'Use the sidebar to open the module you need.' },
-    { number: 2, text: 'Review the dashboard overview and current system information.' },
-    { number: 3, text: 'Open Employees, Departments, Attendance, Leave, or Payroll as needed.' },
-    { number: 4, text: 'Use the ⓘ Need help? beside a function whenever you need guidance.' }
-  ];
+  @Input() steps: HelpStep[] = [];
+  @Input() align: 'left' | 'right' = 'right';
+
+  constructor(private helpService: HelpService) {}
+
+  ngOnInit(): void {
+    this.loadHelpData();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['moduleKey'] || changes['pageKey'] || changes['functionalityKey']) {
+      this.loadHelpData();
+    }
+  }
+
+  private loadHelpData(): void {
+    if (this.moduleKey && this.pageKey && this.functionalityKey) {
+      this.helpService.getHelp(this.moduleKey, this.pageKey, this.functionalityKey).subscribe(res => {
+        if (res) {
+          if (res.title) {
+            this.title = res.title;
+          }
+          if (res.steps && res.steps.length > 0) {
+            this.steps = res.steps;
+          }
+        }
+      });
+    }
+  }
 }
+
+export { HelpStep } from '../../../core/services/help.service';
