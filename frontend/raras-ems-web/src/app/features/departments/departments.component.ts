@@ -19,7 +19,7 @@ import { FunctionalityHelpComponent } from '../../shared/components/functionalit
           + Add Department
         </button>
 
-        <app-functionality-help [steps]="departmentHelpSteps"></app-functionality-help>
+        <app-functionality-help moduleKey="departments" pageKey="department-list" functionalityKey="manage-departments"></app-functionality-help>
       </div>
 
       <div class="card-body">
@@ -80,13 +80,6 @@ import { FunctionalityHelpComponent } from '../../shared/components/functionalit
   `]
 })
 export class DepartmentsComponent {
-  departmentHelpSteps = [
-    { number: 1, text: 'Open Departments from the sidebar.' },
-    { number: 2, text: 'Click Add Department.' },
-    { number: 3, text: 'Enter the department name and required information.' },
-    { number: 4, text: 'Review the department details.' },
-    { number: 5, text: 'Save the department.' }
-  ];
 
   addDepartment(): void {
     alert('Open Add Department Form');

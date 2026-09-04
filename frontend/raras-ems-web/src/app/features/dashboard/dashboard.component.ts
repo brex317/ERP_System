@@ -44,7 +44,7 @@ import { FunctionalityHelpComponent } from '../../shared/components/functionalit
           View Employees →
         </button>
 
-        <app-functionality-help></app-functionality-help>
+        <app-functionality-help moduleKey="dashboard" pageKey="overview" functionalityKey="general"></app-functionality-help>
       </div>
 
       <div class="card-body">

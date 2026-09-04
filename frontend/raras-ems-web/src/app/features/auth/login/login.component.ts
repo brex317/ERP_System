@@ -3,14 +3,24 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { FunctionalityHelpComponent } from '../../../shared/components/functionality-help/functionality-help.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, FunctionalityHelpComponent],
   template: `
     <div class="login-container">
       <div class="login-card">
+        <div class="login-top-bar">
+          <app-functionality-help 
+            moduleKey="auth" 
+            pageKey="login" 
+            functionalityKey="login-form"
+            align="left">
+          </app-functionality-help>
+        </div>
+
         <div class="login-header">
           <div class="logo">
             RARAS <span>EMS</span>
@@ -25,14 +35,15 @@ import { AuthService } from '../../../core/services/auth.service';
           </div>
 
           <div class="form-group">
-            <label for="email">Email Address</label>
+            <label for="email">Username or Email Address</label>
             <input 
-              type="email" 
+              type="text" 
               id="email" 
               name="email" 
               [(ngModel)]="email" 
-              placeholder="admin@raras.com" 
+              placeholder="admin@raras.com or admin" 
               required
+              [disabled]="isLoading"
             >
           </div>
 
@@ -45,6 +56,7 @@ import { AuthService } from '../../../core/services/auth.service';
               [(ngModel)]="password" 
               placeholder="••••••••" 
               required
+              [disabled]="isLoading"
             >
           </div>
 
@@ -52,12 +64,14 @@ import { AuthService } from '../../../core/services/auth.service';
             <label class="remember-me">
               <input type="checkbox" checked> Remember me
             </label>
-            <a href="#" class="forgot-password">Forgot password?</a>
+            <a href="#" class="forgot-password" (click)="$event.preventDefault()">Forgot password?</a>
           </div>
 
           <button type="submit" class="submit-btn" [disabled]="isLoading">
             <span *ngIf="!isLoading">Sign In →</span>
-            <span *ngIf="isLoading">Signing in...</span>
+            <span *ngIf="isLoading" class="spinner-text">
+              <span class="btn-spinner"></span> Authenticating...
+            </span>
           </button>
         </form>
       </div>
@@ -78,8 +92,15 @@ import { AuthService } from '../../../core/services/auth.service';
         background: #ffffff;
         border: 1px solid #e2e8f0;
         border-radius: 14px;
-        padding: 36px 32px;
+        padding: 28px 32px 36px;
         box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+        position: relative;
+    }
+    .login-top-bar {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        margin-bottom: 12px;
     }
     .login-header {
         text-align: center;
@@ -114,6 +135,9 @@ import { AuthService } from '../../../core/services/auth.service';
         border-radius: 8px;
         font-size: 12px;
         margin-bottom: 18px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
     .form-group {
         margin-bottom: 18px;
@@ -170,8 +194,11 @@ import { AuthService } from '../../../core/services/auth.service';
         font-weight: 600;
         cursor: pointer;
         transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
-    .submit-btn:hover {
+    .submit-btn:hover:not(:disabled) {
         background: #1d4ed8;
         transform: translateY(-1px);
     }
@@ -179,11 +206,27 @@ import { AuthService } from '../../../core/services/auth.service';
         opacity: 0.7;
         cursor: not-allowed;
     }
+    .spinner-text {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .btn-spinner {
+        width: 14px;
+        height: 14px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: #ffffff;
+        animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
   `]
 })
 export class LoginComponent {
   email: string = 'admin@raras.com';
-  password: string = 'password123';
+  password: string = 'admin123';
   errorMessage: string = '';
   isLoading: boolean = false;
 
@@ -194,7 +237,7 @@ export class LoginComponent {
 
   onLogin(): void {
     if (!this.email || !this.password) {
-      this.errorMessage = 'Please enter your email and password.';
+      this.errorMessage = 'Please enter your username/email and password.';
       return;
     }
 
@@ -204,16 +247,21 @@ export class LoginComponent {
     this.authService.login(this.email, this.password).subscribe({
       next: (response) => {
         this.isLoading = false;
-        if (response.success) {
+        if (response && response.success) {
           this.router.navigate(['/dashboard']);
         } else {
-          this.errorMessage = response.message || 'Login failed.';
+          this.errorMessage = response?.message || 'Invalid credentials.';
         }
       },
       error: (err) => {
         this.isLoading = false;
-        console.error('Login error:', err);
-        this.router.navigate(['/dashboard']);
+        if (err.status === 401 && err.error?.message) {
+          this.errorMessage = err.error.message;
+        } else if (err.error?.message) {
+          this.errorMessage = err.error.message;
+        } else {
+          this.errorMessage = 'Unable to connect to authentication server. Please check your backend connection.';
+        }
       }
     });
   }

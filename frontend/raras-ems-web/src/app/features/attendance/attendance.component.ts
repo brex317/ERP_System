@@ -15,7 +15,7 @@ import { FunctionalityHelpComponent } from '../../shared/components/functionalit
     <div class="card">
       <div class="card-header">
         <h2>Today's Attendance</h2>
-        <app-functionality-help [steps]="attendanceHelpSteps"></app-functionality-help>
+        <app-functionality-help moduleKey="attendance" pageKey="attendance-list" functionalityKey="manage-attendance"></app-functionality-help>
       </div>
 
       <div class="card-body">
@@ -62,11 +62,4 @@ import { FunctionalityHelpComponent } from '../../shared/components/functionalit
   `]
 })
 export class AttendanceComponent {
-  attendanceHelpSteps = [
-    { number: 1, text: 'Open Attendance from the sidebar.' },
-    { number: 2, text: 'Select the employee whose attendance you want to record.' },
-    { number: 3, text: 'Select the correct attendance status.' },
-    { number: 4, text: 'Check the attendance date and details.' },
-    { number: 5, text: 'Save the attendance record.' }
-  ];
 }

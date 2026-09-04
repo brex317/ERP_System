@@ -27,7 +27,7 @@ export interface EmployeeItem {
           + Add Employee
         </button>
 
-        <app-functionality-help [steps]="employeeHelpSteps"></app-functionality-help>
+        <app-functionality-help moduleKey="employees" pageKey="employee-list" functionalityKey="manage-employees"></app-functionality-help>
       </div>
 
       <div class="table-container">
@@ -127,13 +127,6 @@ export interface EmployeeItem {
   `]
 })
 export class EmployeesComponent {
-  employeeHelpSteps = [
-    { number: 1, text: 'Open Employees from the sidebar.' },
-    { number: 2, text: 'Click Add Employee to open the employee registration form.' },
-    { number: 3, text: 'Enter the required personal and employment information.' },
-    { number: 4, text: 'Select the employee’s department and position.' },
-    { number: 5, text: 'Click Save Employee to complete registration.' }
-  ];
 
   employees: EmployeeItem[] = [
     { id: 1, name: 'John Doe', department: 'IT', position: 'Software Developer', status: 'Active' },
