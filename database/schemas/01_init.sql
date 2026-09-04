@@ -49,3 +49,47 @@ CREATE TABLE IF NOT EXISTS leave_requests (
     reason TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+-- 5. HELP CONTEXTS TABLE
+CREATE TABLE IF NOT EXISTS help_contexts (
+    id SERIAL PRIMARY KEY,
+    module_key VARCHAR(100) NOT NULL,
+    page_key VARCHAR(100) NOT NULL,
+    functionality_key VARCHAR(100) NOT NULL,
+    title VARCHAR(255) NOT NULL DEFAULT 'Quick steps',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_help_context UNIQUE(module_key, page_key, functionality_key)
+);
+
+-- 6. HELP STEPS TABLE
+CREATE TABLE IF NOT EXISTS help_steps (
+    id SERIAL PRIMARY KEY,
+    help_context_id INT NOT NULL REFERENCES help_contexts(id) ON DELETE CASCADE,
+    step_number INT NOT NULL,
+    step_text TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 7. ROLES TABLE
+CREATE TABLE IF NOT EXISTS roles (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE,
+    description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 8. USERS TABLE
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    role_id INT NOT NULL REFERENCES roles(id) ON DELETE RESTRICT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    employee_id INT REFERENCES employees(id) ON DELETE SET NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+
