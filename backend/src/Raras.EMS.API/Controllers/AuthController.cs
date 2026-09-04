@@ -1,11 +1,20 @@
 using Microsoft.AspNetCore.Mvc;
+using Raras.EMS.API.Services;
 
 namespace Raras.EMS.API.Controllers;
 
 public class LoginRequestDto
 {
     public string Email { get; set; } = string.Empty;
+    public string Username { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
+
+    public string GetIdentifier()
+    {
+        if (!string.IsNullOrWhiteSpace(Email)) return Email.Trim();
+        if (!string.IsNullOrWhiteSpace(Username)) return Username.Trim();
+        return string.Empty;
+    }
 }
 
 public class LoginResponseDto
@@ -28,31 +37,38 @@ public class UserProfileDto
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    [HttpPost("login")]
-    public IActionResult Login([FromBody] LoginRequestDto request)
+    private readonly IAuthService _authService;
+
+    public AuthController(IAuthService authService)
     {
-        if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
+        _authService = authService;
+    }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
+    {
+        string identifier = request.GetIdentifier();
+        if (string.IsNullOrWhiteSpace(identifier) || string.IsNullOrWhiteSpace(request.Password))
         {
             return BadRequest(new LoginResponseDto
             {
                 Success = false,
-                Message = "Email and password are required."
+                Message = "Username or email and password are required."
             });
         }
 
-        // Demo credentials check (can connect to employees table / auth system)
-        return Ok(new LoginResponseDto
+        var result = await _authService.AuthenticateAsync(identifier, request.Password);
+        if (!result.Success)
         {
-            Success = true,
-            Message = "Login successful.",
-            Token = "raras-ems-jwt-token-demo-" + Guid.NewGuid().ToString("N"),
-            User = new UserProfileDto
-            {
-                Name = "Berihu",
-                Initials = "BE",
-                Email = request.Email,
-                Role = "System Administrator"
-            }
-        });
+            return Unauthorized(result);
+        }
+
+        return Ok(result);
+    }
+
+    [HttpPost("logout")]
+    public IActionResult Logout()
+    {
+        return Ok(new { success = true, message = "Logout successful." });
     }
 }
