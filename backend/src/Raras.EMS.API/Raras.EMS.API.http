@@ -1,6 +1,0 @@
-@Raras.EMS.API_HostAddress = http://localhost:5230
-
-GET {{Raras.EMS.API_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
