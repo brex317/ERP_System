@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Raras.EMS.API.Data;
 using Raras.EMS.API.Models.Entities;
+using Raras.EMS.API.Services;
 
 namespace Raras.EMS.API.Controllers;
 
@@ -9,32 +8,24 @@ namespace Raras.EMS.API.Controllers;
 [Route("api/[controller]")]
 public class AttendanceController : ControllerBase
 {
-    private readonly EmsDbContext _db;
+    private readonly IAttendanceService _attendanceService;
 
-    public AttendanceController(EmsDbContext db)
+    public AttendanceController(IAttendanceService attendanceService)
     {
-        _db = db;
+        _attendanceService = attendanceService;
     }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Attendance>>> GetAttendance([FromQuery] DateTime? date)
     {
-        var targetDate = (date ?? DateTime.Today).Date;
-        var records = await _db.AttendanceRecords
-            .Include(a => a.Employee)
-            .Where(a => a.Date.Date == targetDate)
-            .ToListAsync();
-
+        var records = await _attendanceService.GetAttendanceByDateAsync(date);
         return Ok(records);
     }
 
     [HttpPost]
     public async Task<ActionResult<Attendance>> LogAttendance([FromBody] Attendance record)
     {
-        record.CreatedAt = DateTime.UtcNow;
-        _db.AttendanceRecords.Add(record);
-        await _db.SaveChangesAsync();
-
-        return Ok(record);
+        var created = await _attendanceService.LogAttendanceAsync(record);
+        return Ok(created);
     }
 }
