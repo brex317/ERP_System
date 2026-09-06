@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Raras.EMS.API.Data;
 using Raras.EMS.API.Models.Entities;
+using Raras.EMS.API.Services;
 
 namespace Raras.EMS.API.Controllers;
 
@@ -9,43 +8,32 @@ namespace Raras.EMS.API.Controllers;
 [Route("api/[controller]")]
 public class LeaveController : ControllerBase
 {
-    private readonly EmsDbContext _db;
+    private readonly ILeaveService _leaveService;
 
-    public LeaveController(EmsDbContext db)
+    public LeaveController(ILeaveService leaveService)
     {
-        _db = db;
+        _leaveService = leaveService;
     }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<LeaveRequest>>> GetLeaveRequests()
     {
-        var requests = await _db.LeaveRequests
-            .Include(l => l.Employee)
-            .OrderByDescending(l => l.CreatedAt)
-            .ToListAsync();
-
+        var requests = await _leaveService.GetAllLeaveRequestsAsync();
         return Ok(requests);
     }
 
     [HttpPost]
     public async Task<ActionResult<LeaveRequest>> CreateLeaveRequest([FromBody] LeaveRequest request)
     {
-        request.CreatedAt = DateTime.UtcNow;
-        request.Status = "Pending";
-        _db.LeaveRequests.Add(request);
-        await _db.SaveChangesAsync();
-
-        return Ok(request);
+        var created = await _leaveService.CreateLeaveRequestAsync(request);
+        return Ok(created);
     }
 
     [HttpPut("{id}/status")]
     public async Task<IActionResult> UpdateLeaveStatus(int id, [FromBody] string status)
     {
-        var request = await _db.LeaveRequests.FindAsync(id);
-        if (request == null) return NotFound();
-
-        request.Status = status;
-        await _db.SaveChangesAsync();
+        var result = await _leaveService.UpdateLeaveStatusAsync(id, status);
+        if (!result) return NotFound();
 
         return NoContent();
     }
