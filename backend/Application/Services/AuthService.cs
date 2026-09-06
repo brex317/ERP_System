@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using Raras.EMS.API.Controllers;
 using Raras.EMS.API.Data;
+using Raras.EMS.API.Models.DTOs;
 
 namespace Raras.EMS.API.Services;
 
