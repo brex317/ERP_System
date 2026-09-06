@@ -1,0 +1,71 @@
+using Microsoft.EntityFrameworkCore;
+using Raras.EMS.API.Data;
+using Raras.EMS.API.Repositories;
+using Raras.EMS.API.Services;
+
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// Configure PostgreSQL DbContext
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    connectionString = "Host=localhost;Database=raras_ems_db;Username=postgres;Password=postgres";
+}
+builder.Services.AddDbContext<EmsDbContext>(options =>
+    options.UseNpgsql(connectionString));
+
+// Register Caching & Help Services
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<IHelpRepository, HelpRepository>();
+builder.Services.AddScoped<IHelpService, HelpService>();
+
+// Register Authentication & Security Services
+builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
+builder.Services.AddSingleton<ITokenService, JwtTokenService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+
+// Configure CORS for web client access
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
+var app = builder.Build();
+
+// Ensure database tables are created and seed data is populated
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<EmsDbContext>();
+    var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
+    try
+    {
+        db.Database.EnsureCreated();
+        DbInitializer.Initialize(db, passwordHasher);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[Startup Warning] Database initialization: {ex.Message}");
+    }
+}
+
+// Configure the HTTP request pipeline.
+app.UseSwagger();
+app.UseSwaggerUI();
+
+app.UseCors("AllowAll");
+app.UseAuthorization();
+app.MapControllers();
+
+app.Run();
