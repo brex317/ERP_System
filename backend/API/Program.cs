@@ -26,6 +26,10 @@ builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IHelpRepository, HelpRepository>();
 builder.Services.AddScoped<IHelpService, HelpService>();
 
+// Register Employee Services & Repositories
+builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+
 // Register Authentication & Security Services
 builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
 builder.Services.AddSingleton<ITokenService, JwtTokenService>();
