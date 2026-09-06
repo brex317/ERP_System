@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Raras.EMS.API.Data;
 using Raras.EMS.API.Models.Entities;
+using Raras.EMS.API.Services;
 
 namespace Raras.EMS.API.Controllers;
 
@@ -9,23 +8,24 @@ namespace Raras.EMS.API.Controllers;
 [Route("api/[controller]")]
 public class DepartmentsController : ControllerBase
 {
-    private readonly EmsDbContext _db;
+    private readonly IDepartmentService _departmentService;
 
-    public DepartmentsController(EmsDbContext db)
+    public DepartmentsController(IDepartmentService departmentService)
     {
-        _db = db;
+        _departmentService = departmentService;
     }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Department>>> GetDepartments()
     {
-        return Ok(await _db.Departments.OrderBy(d => d.Name).ToListAsync());
+        var departments = await _departmentService.GetAllDepartmentsAsync();
+        return Ok(departments);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<Department>> GetDepartment(int id)
     {
-        var dept = await _db.Departments.FindAsync(id);
+        var dept = await _departmentService.GetDepartmentByIdAsync(id);
         if (dept == null) return NotFound();
         return Ok(dept);
     }
@@ -33,34 +33,23 @@ public class DepartmentsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Department>> CreateDepartment([FromBody] Department department)
     {
-        department.CreatedAt = DateTime.UtcNow;
-        _db.Departments.Add(department);
-        await _db.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetDepartment), new { id = department.Id }, department);
+        var created = await _departmentService.CreateDepartmentAsync(department);
+        return CreatedAtAction(nameof(GetDepartment), new { id = created.Id }, created);
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateDepartment(int id, [FromBody] Department updated)
     {
-        var dept = await _db.Departments.FindAsync(id);
-        if (dept == null) return NotFound();
-
-        dept.Name = updated.Name;
-        dept.Code = updated.Code;
-        dept.Description = updated.Description;
-
-        await _db.SaveChangesAsync();
+        var result = await _departmentService.UpdateDepartmentAsync(id, updated);
+        if (!result) return NotFound();
         return NoContent();
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteDepartment(int id)
     {
-        var dept = await _db.Departments.FindAsync(id);
-        if (dept == null) return NotFound();
-
-        _db.Departments.Remove(dept);
-        await _db.SaveChangesAsync();
+        var result = await _departmentService.DeleteDepartmentAsync(id);
+        if (!result) return NotFound();
         return NoContent();
     }
 }
