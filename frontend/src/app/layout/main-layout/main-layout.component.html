@@ -1,0 +1,64 @@
+<div class="app">
+  <app-sidebar [isOpen]="isSidebarOpen" (closeSidebar)="closeSidebar()"></app-sidebar>
+
+  <main class="main">
+    <app-header (toggleSidebar)="toggleSidebar()"></app-header>
+
+    <section class="page">
+      <router-outlet></router-outlet>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-container">
+        <div class="footer-brand">
+          <h2>RARAS</h2>
+          <p>Employee Management System</p>
+          <br>
+          <p>A professional platform for managing employees, departments, attendance, leave and payroll.</p>
+        </div>
+
+        <div class="footer-column">
+          <h3>Company</h3>
+          <a routerLink="/about">About RARAS</a>
+          <a routerLink="/contact">Contact Us</a>
+          <a routerLink="/careers">Careers</a>
+          <a routerLink="/privacy">Privacy Policy</a>
+        </div>
+
+        <div class="footer-column">
+          <h3>System</h3>
+          <a routerLink="/dashboard">Dashboard</a>
+          <a routerLink="/employees">Employees</a>
+          <a routerLink="/departments">Departments</a>
+          <a routerLink="/attendance">Attendance</a>
+          <a routerLink="/leave">Leave Management</a>
+          <a routerLink="/payroll">Payroll</a>
+        </div>
+
+        <div class="footer-column">
+          <h3>Support</h3>
+          <a routerLink="/help">Help Center</a>
+          <a routerLink="/help">FAQs</a>
+          <a routerLink="/help">User Guides</a>
+          <a routerLink="/help">Troubleshooting</a>
+        </div>
+      </div>
+
+      <div class="footer-contact">
+        <span>📍 Addis Ababa, Ethiopia</span>
+        <span>✉ support&#64;raras.com</span>
+        <span>☎ +251 XXX XXX XXX</span>
+        <span>🕐 Mon – Fri, 8:30 AM – 5:30 PM</span>
+      </div>
+
+      <div class="footer-bottom">
+        <span>© 2026 RARAS Technologies. All rights reserved.</span>
+        <div class="social">
+          <a>LinkedIn</a>
+          <a>Facebook</a>
+          <a>X</a>
+        </div>
+      </div>
+    </footer>
+  </main>
+</div>

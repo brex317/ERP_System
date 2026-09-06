@@ -1,0 +1,49 @@
+<div class="page-header">
+  <h1>Leave Management</h1>
+  <p>Manage employee leave requests.</p>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2>Leave Requests</h2>
+    <button class="primary-btn" (click)="newRequest()">
+      + New Request
+    </button>
+
+    <app-functionality-help></app-functionality-help>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-container">
+    <span class="spinner"></span> Loading leave requests from database...
+  </div>
+
+  <div *ngIf="!isLoading" class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Employee Name</th>
+          <th>Leave Type</th>
+          <th>Start Date</th>
+          <th>End Date</th>
+          <th>Reason</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let req of requests">
+          <td><strong>{{ req.employeeName || ('Employee #' + req.employeeId) }}</strong></td>
+          <td>{{ req.leaveType }}</td>
+          <td>{{ req.startDate | date:'mediumDate' }}</td>
+          <td>{{ req.endDate | date:'mediumDate' }}</td>
+          <td>{{ req.reason || 'N/A' }}</td>
+          <td>
+            <span class="status" [ngClass]="req.status.toLowerCase()">{{ req.status }}</span>
+          </td>
+        </tr>
+        <tr *ngIf="requests.length === 0">
+          <td colspan="6" class="empty-state">No leave requests found in database.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

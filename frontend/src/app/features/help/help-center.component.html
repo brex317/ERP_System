@@ -1,0 +1,30 @@
+<!-- HERO -->
+<div class="help-hero">
+  <h1>How can we help you?</h1>
+  <p>Find guides, answers and troubleshooting help for using the RARAS Employee Management System.</p>
+
+  <div class="help-search-wrapper">
+    <span class="search-icon">🔍</span>
+    <input class="help-search" placeholder="Search how to...">
+  </div>
+</div>
+
+<!-- CATEGORIES -->
+<div class="help-section-title">
+  <h2>Browse Help</h2>
+  <span>Find help by system area</span>
+</div>
+
+<div class="help-categories">
+  <div *ngFor="let cat of categories" class="help-category">
+    <div class="category-top">
+      <div class="category-icon">{{ cat.icon }}</div>
+      <div>
+        <h3>{{ cat.title }}</h3>
+        <span class="guide-count">{{ cat.count }}</span>
+      </div>
+    </div>
+    <p>{{ cat.description }}</p>
+    <span class="view-guides">View guides →</span>
+  </div>
+</div>

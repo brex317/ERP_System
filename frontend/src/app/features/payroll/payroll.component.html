@@ -1,0 +1,45 @@
+<div class="page-header">
+  <h1>Payroll</h1>
+  <p>Manage employee payroll information.</p>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2>Payroll Summary</h2>
+    <app-functionality-help></app-functionality-help>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-container">
+    <span class="spinner"></span> Loading payroll data from database...
+  </div>
+
+  <div *ngIf="!isLoading" class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Employee</th>
+          <th>Department</th>
+          <th>Base Salary</th>
+          <th>Allowances</th>
+          <th>Deductions</th>
+          <th>Net Pay</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of payrolls">
+          <td><strong>{{ p.employeeName }}</strong></td>
+          <td>{{ p.department }}</td>
+          <td>\${{ p.baseSalary | number:'1.2-2' }}</td>
+          <td>\${{ p.allowances | number:'1.2-2' }}</td>
+          <td>\${{ p.deductions | number:'1.2-2' }}</td>
+          <td><strong>\${{ p.netPay | number:'1.2-2' }}</strong></td>
+          <td><span class="status">{{ p.status }}</span></td>
+        </tr>
+        <tr *ngIf="payrolls.length === 0">
+          <td colspan="7" class="empty-state">No payroll records available.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
