@@ -1,7 +1,7 @@
 -- PostgreSQL Seed Data Script for RARAS Employee Management System (EMS)
 
 -- Clear existing data
-TRUNCATE TABLE users, roles, help_steps, help_contexts, leave_requests, attendance, employees, departments RESTART IDENTITY CASCADE;
+TRUNCATE TABLE users, roles, help_steps, help_contexts, functionalities, pages, modules, leave_requests, attendance, employees, departments RESTART IDENTITY CASCADE;
 
 -- Insert Roles
 INSERT INTO roles (id, name, description) VALUES
@@ -101,10 +101,44 @@ BEGIN
     END LOOP;
 END $$;
 
--- Insert Help Contexts & Steps
--- 1. Dashboard Context
-INSERT INTO help_contexts (id, module_key, page_key, functionality_key, title) VALUES
-(1, 'dashboard', 'overview', 'general', 'Quick steps');
+-- Insert 3NF Modules
+INSERT INTO modules (id, key, display_name, icon, sort_order) VALUES
+(1, 'dashboard', 'Dashboard', 'layout-dashboard', 1),
+(2, 'employees', 'Employees', 'users', 2),
+(3, 'departments', 'Departments', 'building', 3),
+(4, 'attendance', 'Attendance', 'calendar-check', 4),
+(5, 'leave', 'Leave Management', 'calendar', 5),
+(6, 'payroll', 'Payroll', 'dollar-sign', 6),
+(7, 'auth', 'Authentication', 'lock', 7);
+SELECT setval('modules_id_seq', (SELECT MAX(id) FROM modules));
+
+-- Insert 3NF Pages
+INSERT INTO pages (id, module_id, key, display_name, route_path, sort_order) VALUES
+(1, 1, 'overview', 'Dashboard Overview', '/dashboard', 1),
+(2, 2, 'employee-list', 'Employee List', '/employees', 1),
+(3, 2, 'employee-details', 'Employee Details', '/employees/:id', 2),
+(4, 3, 'department-list', 'Department List', '/departments', 1),
+(5, 4, 'attendance-list', 'Attendance List', '/attendance', 1),
+(6, 5, 'leave-list', 'Leave List', '/leave', 1),
+(7, 6, 'payroll-list', 'Payroll List', '/payroll', 1),
+(8, 7, 'login', 'Login Page', '/login', 1);
+SELECT setval('pages_id_seq', (SELECT MAX(id) FROM pages));
+
+-- Insert 3NF Functionalities
+INSERT INTO functionalities (id, page_id, key, display_name) VALUES
+(1, 2, 'manage-employees', 'Manage Employees'),
+(2, 3, 'add-document', 'Add Employee Document'),
+(3, 4, 'manage-departments', 'Manage Departments'),
+(4, 5, 'manage-attendance', 'Manage Attendance'),
+(5, 6, 'manage-leave', 'Manage Leave Requests'),
+(6, 7, 'manage-payroll', 'Manage Payroll'),
+(7, 8, 'login-form', 'User Login Form');
+SELECT setval('functionalities_id_seq', (SELECT MAX(id) FROM functionalities));
+
+-- Insert Help Contexts (Module, Page, or Functionality levels)
+-- 1. Dashboard Context -> Module-level help (module_id = 1)
+INSERT INTO help_contexts (id, module_id, title) VALUES
+(1, 1, 'Quick steps');
 
 INSERT INTO help_steps (help_context_id, step_number, step_text) VALUES
 (1, 1, 'Use the sidebar to open the module you need.'),
@@ -112,9 +146,9 @@ INSERT INTO help_steps (help_context_id, step_number, step_text) VALUES
 (1, 3, 'Open Employees, Departments, Attendance, Leave, or Payroll as needed.'),
 (1, 4, 'Use the ⓘ Need help? beside a function whenever you need guidance.');
 
--- 2. Employees Context
-INSERT INTO help_contexts (id, module_key, page_key, functionality_key, title) VALUES
-(2, 'employees', 'employee-list', 'manage-employees', 'Quick steps');
+-- 2. Employees Context -> Page-level help (page_id = 2 [employee-list])
+INSERT INTO help_contexts (id, page_id, title) VALUES
+(2, 2, 'Quick steps');
 
 INSERT INTO help_steps (help_context_id, step_number, step_text) VALUES
 (2, 1, 'Open Employees from the sidebar.'),
@@ -123,9 +157,9 @@ INSERT INTO help_steps (help_context_id, step_number, step_text) VALUES
 (2, 4, 'Select the employee’s department and position.'),
 (2, 5, 'Click Save Employee to complete registration.');
 
--- 3. Employee Details / Add Document Example Context
-INSERT INTO help_contexts (id, module_key, page_key, functionality_key, title) VALUES
-(3, 'employees', 'employee-details', 'add-document', 'Document upload steps');
+-- 3. Employee Details / Add Document Context -> Functionality-level help (functionality_id = 2 [add-document])
+INSERT INTO help_contexts (id, functionality_id, title) VALUES
+(3, 2, 'Document upload steps');
 
 INSERT INTO help_steps (help_context_id, step_number, step_text) VALUES
 (3, 1, 'Navigate to the target Employee Profile page.'),
@@ -133,9 +167,9 @@ INSERT INTO help_steps (help_context_id, step_number, step_text) VALUES
 (3, 3, 'Select the document type and file from your computer.'),
 (3, 4, 'Click Upload Document to attach it to the employee profile.');
 
--- 4. Departments Context
-INSERT INTO help_contexts (id, module_key, page_key, functionality_key, title) VALUES
-(4, 'departments', 'department-list', 'manage-departments', 'Quick steps');
+-- 4. Departments Context -> Page-level help (page_id = 4 [department-list])
+INSERT INTO help_contexts (id, page_id, title) VALUES
+(4, 4, 'Quick steps');
 
 INSERT INTO help_steps (help_context_id, step_number, step_text) VALUES
 (4, 1, 'Open Departments from the sidebar.'),
@@ -144,9 +178,9 @@ INSERT INTO help_steps (help_context_id, step_number, step_text) VALUES
 (4, 4, 'Review the department details.'),
 (4, 5, 'Save the department.');
 
--- 5. Attendance Context
-INSERT INTO help_contexts (id, module_key, page_key, functionality_key, title) VALUES
-(5, 'attendance', 'attendance-list', 'manage-attendance', 'Quick steps');
+-- 5. Attendance Context -> Page-level help (page_id = 5 [attendance-list])
+INSERT INTO help_contexts (id, page_id, title) VALUES
+(5, 5, 'Quick steps');
 
 INSERT INTO help_steps (help_context_id, step_number, step_text) VALUES
 (5, 1, 'Open Attendance from the sidebar.'),
@@ -155,9 +189,9 @@ INSERT INTO help_steps (help_context_id, step_number, step_text) VALUES
 (5, 4, 'Check the attendance date and details.'),
 (5, 5, 'Save the attendance record.');
 
--- 6. Leave Context
-INSERT INTO help_contexts (id, module_key, page_key, functionality_key, title) VALUES
-(6, 'leave', 'leave-list', 'manage-leave', 'Quick steps');
+-- 6. Leave Context -> Page-level help (page_id = 6 [leave-list])
+INSERT INTO help_contexts (id, page_id, title) VALUES
+(6, 6, 'Quick steps');
 
 INSERT INTO help_steps (help_context_id, step_number, step_text) VALUES
 (6, 1, 'Open Leave Management from the sidebar.'),
@@ -166,9 +200,9 @@ INSERT INTO help_steps (help_context_id, step_number, step_text) VALUES
 (6, 4, 'Select the start and end dates.'),
 (6, 5, 'Submit the leave request.');
 
--- 7. Payroll Context
-INSERT INTO help_contexts (id, module_key, page_key, functionality_key, title) VALUES
-(7, 'payroll', 'payroll-list', 'manage-payroll', 'Quick steps');
+-- 7. Payroll Context -> Page-level help (page_id = 7 [payroll-list])
+INSERT INTO help_contexts (id, page_id, title) VALUES
+(7, 7, 'Quick steps');
 
 INSERT INTO help_steps (help_context_id, step_number, step_text) VALUES
 (7, 1, 'Open Payroll from the sidebar.'),
@@ -177,9 +211,9 @@ INSERT INTO help_steps (help_context_id, step_number, step_text) VALUES
 (7, 4, 'Check the calculated payroll information.'),
 (7, 5, 'Process payroll according to your organization workflow.');
 
--- 8. Login Context
-INSERT INTO help_contexts (id, module_key, page_key, functionality_key, title) VALUES
-(8, 'auth', 'login', 'login-form', 'Quick steps');
+-- 8. Login Context -> Functionality-level help (functionality_id = 7 [login-form])
+INSERT INTO help_contexts (id, functionality_id, title) VALUES
+(8, 7, 'Quick steps');
 
 INSERT INTO help_steps (help_context_id, step_number, step_text) VALUES
 (8, 1, 'Enter your username or email.'),
@@ -187,6 +221,8 @@ INSERT INTO help_steps (help_context_id, step_number, step_text) VALUES
 (8, 3, 'Click Login.'),
 (8, 4, 'The system validates your credentials.'),
 (8, 5, 'If successful, you are redirected to the Dashboard.');
+
 SELECT setval('help_contexts_id_seq', (SELECT MAX(id) FROM help_contexts));
+
 
 

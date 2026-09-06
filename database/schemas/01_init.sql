@@ -50,24 +50,60 @@ CREATE TABLE IF NOT EXISTS leave_requests (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 5. HELP CONTEXTS TABLE
-CREATE TABLE IF NOT EXISTS help_contexts (
+-- 5. MODULES TABLE
+CREATE TABLE IF NOT EXISTS modules (
     id SERIAL PRIMARY KEY,
-    module_key VARCHAR(100) NOT NULL,
-    page_key VARCHAR(100) NOT NULL,
-    functionality_key VARCHAR(100) NOT NULL,
-    title VARCHAR(255) NOT NULL DEFAULT 'Quick steps',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT unique_help_context UNIQUE(module_key, page_key, functionality_key)
+    key VARCHAR(100) NOT NULL UNIQUE,
+    display_name VARCHAR(150) NOT NULL,
+    icon VARCHAR(50),
+    sort_order INT NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
--- 6. HELP STEPS TABLE
+-- 6. PAGES TABLE
+CREATE TABLE IF NOT EXISTS pages (
+    id SERIAL PRIMARY KEY,
+    module_id INT NOT NULL REFERENCES modules(id) ON DELETE CASCADE,
+    key VARCHAR(100) NOT NULL,
+    display_name VARCHAR(150) NOT NULL,
+    route_path VARCHAR(255),
+    sort_order INT NOT NULL DEFAULT 0,
+    CONSTRAINT unique_module_page UNIQUE(module_id, key)
+);
+
+-- 7. FUNCTIONALITIES TABLE
+CREATE TABLE IF NOT EXISTS functionalities (
+    id SERIAL PRIMARY KEY,
+    page_id INT NOT NULL REFERENCES pages(id) ON DELETE CASCADE,
+    key VARCHAR(100) NOT NULL,
+    display_name VARCHAR(150) NOT NULL,
+    CONSTRAINT unique_page_functionality UNIQUE(page_id, key)
+);
+
+-- 8. HELP CONTEXTS TABLE
+CREATE TABLE IF NOT EXISTS help_contexts (
+    id SERIAL PRIMARY KEY,
+    functionality_id INT REFERENCES functionalities(id) ON DELETE CASCADE,
+    page_id INT REFERENCES pages(id) ON DELETE CASCADE,
+    module_id INT REFERENCES modules(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL DEFAULT 'Quick steps',
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_help_context_single_target CHECK (
+        (CASE WHEN functionality_id IS NOT NULL THEN 1 ELSE 0 END +
+         CASE WHEN page_id IS NOT NULL THEN 1 ELSE 0 END +
+         CASE WHEN module_id IS NOT NULL THEN 1 ELSE 0 END) = 1
+    )
+);
+
+-- 9. HELP STEPS TABLE
 CREATE TABLE IF NOT EXISTS help_steps (
     id SERIAL PRIMARY KEY,
     help_context_id INT NOT NULL REFERENCES help_contexts(id) ON DELETE CASCADE,
     step_number INT NOT NULL,
     step_text TEXT NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_help_context_step UNIQUE(help_context_id, step_number)
 );
 
 -- 7. ROLES TABLE
