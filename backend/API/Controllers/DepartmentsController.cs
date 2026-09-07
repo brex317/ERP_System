@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Raras.EMS.API.Models.Entities;
+using Raras.EMS.API.Models.DTOs;
 using Raras.EMS.API.Services;
 
 namespace Raras.EMS.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class DepartmentsController : ControllerBase
@@ -16,14 +18,14 @@ public class DepartmentsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Department>>> GetDepartments()
+    public async Task<ActionResult<IEnumerable<DepartmentResponseDto>>> GetDepartments()
     {
         var departments = await _departmentService.GetAllDepartmentsAsync();
         return Ok(departments);
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<Department>> GetDepartment(int id)
+    public async Task<ActionResult<DepartmentResponseDto>> GetDepartment(int id)
     {
         var dept = await _departmentService.GetDepartmentByIdAsync(id);
         if (dept == null) return NotFound();
@@ -31,16 +33,16 @@ public class DepartmentsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<Department>> CreateDepartment([FromBody] Department department)
+    public async Task<ActionResult<DepartmentResponseDto>> CreateDepartment([FromBody] CreateDepartmentDto dto)
     {
-        var created = await _departmentService.CreateDepartmentAsync(department);
+        var created = await _departmentService.CreateDepartmentAsync(dto);
         return CreatedAtAction(nameof(GetDepartment), new { id = created.Id }, created);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateDepartment(int id, [FromBody] Department updated)
+    public async Task<IActionResult> UpdateDepartment(int id, [FromBody] UpdateDepartmentDto dto)
     {
-        var result = await _departmentService.UpdateDepartmentAsync(id, updated);
+        var result = await _departmentService.UpdateDepartmentAsync(id, dto);
         if (!result) return NotFound();
         return NoContent();
     }

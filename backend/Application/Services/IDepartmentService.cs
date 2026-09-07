@@ -1,12 +1,12 @@
-using Raras.EMS.API.Models.Entities;
+using Raras.EMS.API.Models.DTOs;
 
 namespace Raras.EMS.API.Services;
 
 public interface IDepartmentService
 {
-    Task<IEnumerable<Department>> GetAllDepartmentsAsync();
-    Task<Department?> GetDepartmentByIdAsync(int id);
-    Task<Department> CreateDepartmentAsync(Department department);
-    Task<bool> UpdateDepartmentAsync(int id, Department updated);
+    Task<IEnumerable<DepartmentResponseDto>> GetAllDepartmentsAsync();
+    Task<DepartmentResponseDto?> GetDepartmentByIdAsync(int id);
+    Task<DepartmentResponseDto> CreateDepartmentAsync(CreateDepartmentDto dto);
+    Task<bool> UpdateDepartmentAsync(int id, UpdateDepartmentDto dto);
     Task<bool> DeleteDepartmentAsync(int id);
 }

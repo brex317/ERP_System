@@ -1,3 +1,4 @@
+using Raras.EMS.API.Models.DTOs;
 using Raras.EMS.API.Models.Entities;
 using Raras.EMS.API.Repositories;
 
@@ -12,15 +13,47 @@ public class AttendanceService : IAttendanceService
         _repository = repository;
     }
 
-    public async Task<IEnumerable<Attendance>> GetAttendanceByDateAsync(DateTime? date)
+    public async Task<IEnumerable<AttendanceResponseDto>> GetAttendanceByDateAsync(DateTime? date)
     {
         var targetDate = (date ?? DateTime.Today).Date;
-        return await _repository.GetByDateAsync(targetDate);
+        var records = await _repository.GetByDateAsync(targetDate);
+        return records.Select(MapToResponseDto);
     }
 
-    public async Task<Attendance> LogAttendanceAsync(Attendance record)
+    public async Task<AttendanceResponseDto> LogAttendanceAsync(LogAttendanceDto dto)
     {
-        record.CreatedAt = DateTime.UtcNow;
-        return await _repository.AddAsync(record);
+        var record = new Attendance
+        {
+            EmployeeId = dto.EmployeeId,
+            Date = dto.Date ?? DateTime.UtcNow.Date,
+            Status = dto.Status ?? "Present",
+            CheckIn = dto.CheckIn,
+            CheckOut = dto.CheckOut,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var created = await _repository.AddAsync(record);
+        return MapToResponseDto(created);
+    }
+
+    private static AttendanceResponseDto MapToResponseDto(Attendance a)
+    {
+        string? empName = null;
+        if (a.Employee != null)
+        {
+            empName = $"{a.Employee.FirstName} {a.Employee.LastName}".Trim();
+        }
+
+        return new AttendanceResponseDto
+        {
+            Id = a.Id,
+            EmployeeId = a.EmployeeId,
+            EmployeeName = empName,
+            Date = a.Date,
+            Status = a.Status,
+            CheckIn = a.CheckIn,
+            CheckOut = a.CheckOut,
+            CreatedAt = a.CreatedAt
+        };
     }
 }

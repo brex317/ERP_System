@@ -1,3 +1,4 @@
+using Raras.EMS.API.Models.DTOs;
 using Raras.EMS.API.Models.Entities;
 using Raras.EMS.API.Repositories;
 
@@ -12,30 +13,40 @@ public class DepartmentService : IDepartmentService
         _repository = repository;
     }
 
-    public async Task<IEnumerable<Department>> GetAllDepartmentsAsync()
+    public async Task<IEnumerable<DepartmentResponseDto>> GetAllDepartmentsAsync()
     {
-        return await _repository.GetAllAsync();
+        var departments = await _repository.GetAllAsync();
+        return departments.Select(MapToResponseDto);
     }
 
-    public async Task<Department?> GetDepartmentByIdAsync(int id)
+    public async Task<DepartmentResponseDto?> GetDepartmentByIdAsync(int id)
     {
-        return await _repository.GetByIdAsync(id);
+        var dept = await _repository.GetByIdAsync(id);
+        return dept == null ? null : MapToResponseDto(dept);
     }
 
-    public async Task<Department> CreateDepartmentAsync(Department department)
+    public async Task<DepartmentResponseDto> CreateDepartmentAsync(CreateDepartmentDto dto)
     {
-        department.CreatedAt = DateTime.UtcNow;
-        return await _repository.AddAsync(department);
+        var department = new Department
+        {
+            Name = dto.Name,
+            Code = dto.Code,
+            Description = dto.Description,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var created = await _repository.AddAsync(department);
+        return MapToResponseDto(created);
     }
 
-    public async Task<bool> UpdateDepartmentAsync(int id, Department updated)
+    public async Task<bool> UpdateDepartmentAsync(int id, UpdateDepartmentDto dto)
     {
         var dept = await _repository.GetByIdAsync(id);
         if (dept == null) return false;
 
-        dept.Name = updated.Name;
-        dept.Code = updated.Code;
-        dept.Description = updated.Description;
+        dept.Name = dto.Name;
+        dept.Code = dto.Code;
+        dept.Description = dto.Description;
 
         await _repository.UpdateAsync(dept);
         return true;
@@ -48,5 +59,17 @@ public class DepartmentService : IDepartmentService
 
         await _repository.DeleteAsync(dept);
         return true;
+    }
+
+    private static DepartmentResponseDto MapToResponseDto(Department d)
+    {
+        return new DepartmentResponseDto
+        {
+            Id = d.Id,
+            Name = d.Name,
+            Code = d.Code,
+            Description = d.Description,
+            CreatedAt = d.CreatedAt
+        };
     }
 }

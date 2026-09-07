@@ -1,9 +1,9 @@
-using Raras.EMS.API.Models.Entities;
+using Raras.EMS.API.Models.DTOs;
 
 namespace Raras.EMS.API.Services;
 
 public interface IAttendanceService
 {
-    Task<IEnumerable<Attendance>> GetAttendanceByDateAsync(DateTime? date);
-    Task<Attendance> LogAttendanceAsync(Attendance record);
+    Task<IEnumerable<AttendanceResponseDto>> GetAttendanceByDateAsync(DateTime? date);
+    Task<AttendanceResponseDto> LogAttendanceAsync(LogAttendanceDto dto);
 }

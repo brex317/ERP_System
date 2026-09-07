@@ -1,3 +1,4 @@
+using Raras.EMS.API.Models.DTOs;
 using Raras.EMS.API.Models.Entities;
 using Raras.EMS.API.Repositories;
 
@@ -12,16 +13,27 @@ public class LeaveService : ILeaveService
         _repository = repository;
     }
 
-    public async Task<IEnumerable<LeaveRequest>> GetAllLeaveRequestsAsync()
+    public async Task<IEnumerable<LeaveRequestResponseDto>> GetAllLeaveRequestsAsync()
     {
-        return await _repository.GetAllAsync();
+        var requests = await _repository.GetAllAsync();
+        return requests.Select(MapToResponseDto);
     }
 
-    public async Task<LeaveRequest> CreateLeaveRequestAsync(LeaveRequest request)
+    public async Task<LeaveRequestResponseDto> CreateLeaveRequestAsync(CreateLeaveRequestDto dto)
     {
-        request.CreatedAt = DateTime.UtcNow;
-        request.Status = "Pending";
-        return await _repository.AddAsync(request);
+        var request = new LeaveRequest
+        {
+            EmployeeId = dto.EmployeeId,
+            LeaveType = dto.LeaveType,
+            StartDate = dto.StartDate,
+            EndDate = dto.EndDate,
+            Reason = dto.Reason,
+            Status = "Pending",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var created = await _repository.AddAsync(request);
+        return MapToResponseDto(created);
     }
 
     public async Task<bool> UpdateLeaveStatusAsync(int id, string status)
@@ -32,5 +44,27 @@ public class LeaveService : ILeaveService
         request.Status = status;
         await _repository.UpdateAsync(request);
         return true;
+    }
+
+    private static LeaveRequestResponseDto MapToResponseDto(LeaveRequest l)
+    {
+        string? empName = null;
+        if (l.Employee != null)
+        {
+            empName = $"{l.Employee.FirstName} {l.Employee.LastName}".Trim();
+        }
+
+        return new LeaveRequestResponseDto
+        {
+            Id = l.Id,
+            EmployeeId = l.EmployeeId,
+            EmployeeName = empName,
+            LeaveType = l.LeaveType,
+            StartDate = l.StartDate,
+            EndDate = l.EndDate,
+            Status = l.Status,
+            Reason = l.Reason,
+            CreatedAt = l.CreatedAt
+        };
     }
 }
