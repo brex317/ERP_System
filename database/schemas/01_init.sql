@@ -60,51 +60,61 @@ CREATE TABLE IF NOT EXISTS modules (
     is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
--- 6. PAGES TABLE
-CREATE TABLE IF NOT EXISTS pages (
+-- 6. FEATURES TABLE
+CREATE TABLE IF NOT EXISTS features (
     id SERIAL PRIMARY KEY,
     module_id INT NOT NULL REFERENCES modules(id) ON DELETE CASCADE,
     key VARCHAR(100) NOT NULL,
     display_name VARCHAR(150) NOT NULL,
     route_path VARCHAR(255),
     sort_order INT NOT NULL DEFAULT 0,
-    CONSTRAINT unique_module_page UNIQUE(module_id, key)
+    CONSTRAINT unique_module_feature UNIQUE(module_id, key)
 );
 
--- 7. FUNCTIONALITIES TABLE
-CREATE TABLE IF NOT EXISTS functionalities (
+-- 7. FEATURE SPECIFICATIONS TABLE
+CREATE TABLE IF NOT EXISTS feature_specifications (
     id SERIAL PRIMARY KEY,
-    page_id INT NOT NULL REFERENCES pages(id) ON DELETE CASCADE,
+    feature_id INT NOT NULL REFERENCES features(id) ON DELETE CASCADE,
     key VARCHAR(100) NOT NULL,
     display_name VARCHAR(150) NOT NULL,
-    CONSTRAINT unique_page_functionality UNIQUE(page_id, key)
+    CONSTRAINT unique_feature_specification UNIQUE(feature_id, key)
 );
 
--- 8. HELP CONTEXTS TABLE
-CREATE TABLE IF NOT EXISTS help_contexts (
+-- 8. HELP HEADERS TABLE
+CREATE TABLE IF NOT EXISTS help_headers (
     id SERIAL PRIMARY KEY,
-    functionality_id INT REFERENCES functionalities(id) ON DELETE CASCADE,
-    page_id INT REFERENCES pages(id) ON DELETE CASCADE,
+    feature_specification_id INT REFERENCES feature_specifications(id) ON DELETE CASCADE,
+    feature_id INT REFERENCES features(id) ON DELETE CASCADE,
     module_id INT REFERENCES modules(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL DEFAULT 'Quick steps',
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT chk_help_context_single_target CHECK (
-        (CASE WHEN functionality_id IS NOT NULL THEN 1 ELSE 0 END +
-         CASE WHEN page_id IS NOT NULL THEN 1 ELSE 0 END +
+    CONSTRAINT chk_help_header_single_target CHECK (
+        (CASE WHEN feature_specification_id IS NOT NULL THEN 1 ELSE 0 END +
+         CASE WHEN feature_id IS NOT NULL THEN 1 ELSE 0 END +
          CASE WHEN module_id IS NOT NULL THEN 1 ELSE 0 END) = 1
     )
 );
 
--- 9. HELP STEPS TABLE
-CREATE TABLE IF NOT EXISTS help_steps (
+-- 9. HELP DETAILS TABLE
+CREATE TABLE IF NOT EXISTS help_details (
     id SERIAL PRIMARY KEY,
-    help_context_id INT NOT NULL REFERENCES help_contexts(id) ON DELETE CASCADE,
+    help_header_id INT NOT NULL REFERENCES help_headers(id) ON DELETE CASCADE,
     step_number INT NOT NULL,
     step_text TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT unique_help_context_step UNIQUE(help_context_id, step_number)
+    CONSTRAINT unique_help_header_detail UNIQUE(help_header_id, step_number)
 );
+
+-- INDEXES
+CREATE INDEX IF NOT EXISTS idx_features_key ON features (lower(key));
+CREATE INDEX IF NOT EXISTS idx_feature_specifications_key ON feature_specifications (lower(key));
+CREATE INDEX IF NOT EXISTS idx_modules_key ON modules (lower(key));
+CREATE INDEX IF NOT EXISTS idx_help_headers_module ON help_headers (module_id) WHERE module_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_help_headers_feature ON help_headers (feature_id) WHERE feature_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_help_headers_feature_spec ON help_headers (feature_specification_id) WHERE feature_specification_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_help_details_header ON help_details (help_header_id);
+
 
 -- 7. ROLES TABLE
 CREATE TABLE IF NOT EXISTS roles (
