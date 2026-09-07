@@ -1,30 +1,97 @@
-<!-- HERO -->
-<div class="help-hero">
-  <h1>How can we help you?</h1>
-  <p>Find guides, answers and troubleshooting help for using the RARAS Employee Management System.</p>
+<div class="help-center-wrapper">
+  <!-- HERO SEARCH SECTION -->
+  <div class="help-hero">
+    <div class="hero-content">
+      <h1>📖 RARAS EMS Help & Knowledge Base</h1>
+      <p>Search guides, walkthroughs, and step-by-step instructions for all system modules.</p>
 
-  <div class="help-search-wrapper">
-    <span class="search-icon">🔍</span>
-    <input class="help-search" placeholder="Search how to...">
-  </div>
-</div>
-
-<!-- CATEGORIES -->
-<div class="help-section-title">
-  <h2>Browse Help</h2>
-  <span>Find help by system area</span>
-</div>
-
-<div class="help-categories">
-  <div *ngFor="let cat of categories" class="help-category">
-    <div class="category-top">
-      <div class="category-icon">{{ cat.icon }}</div>
-      <div>
-        <h3>{{ cat.title }}</h3>
-        <span class="guide-count">{{ cat.count }}</span>
+      <div class="help-search-box">
+        <span class="search-icon">🔍</span>
+        <input 
+          type="text" 
+          class="help-search-input" 
+          placeholder="Search articles e.g., 'How to add employee', 'Leave approval'..."
+          [(ngModel)]="searchQuery"
+        />
       </div>
     </div>
-    <p>{{ cat.description }}</p>
-    <span class="view-guides">View guides →</span>
+  </div>
+
+  <div class="help-body">
+    <!-- CATEGORY FILTER TABS -->
+    <div class="category-pills">
+      <button 
+        *ngFor="let cat of categories" 
+        class="pill-btn" 
+        [class.active]="selectedCategory === cat.key"
+        (click)="selectCategory(cat.key)"
+      >
+        <span class="pill-icon">{{ cat.icon }}</span> {{ cat.label }}
+      </button>
+    </div>
+
+    <!-- ARTICLES GRID -->
+    <div class="articles-grid">
+      <div 
+        *ngFor="let article of filteredArticles" 
+        class="article-card"
+        (click)="openArticle(article)"
+      >
+        <div class="article-top">
+          <span class="article-icon">{{ article.icon }}</span>
+          <span class="category-tag">{{ article.category }}</span>
+        </div>
+        <h3 class="article-title">{{ article.title }}</h3>
+        <p class="article-summary">{{ article.summary }}</p>
+        <div class="article-footer">
+          <span class="read-link">Read Step-by-Step Guide →</span>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="filteredArticles.length === 0" class="empty-help">
+      <p>No guides match your search "{{ searchQuery }}". Need further assistance?</p>
+      <a routerLink="/support" class="btn btn-primary">🎧 Contact Support Desk</a>
+    </div>
+
+    <!-- SUPPORT BANNER -->
+    <div class="support-banner">
+      <div class="banner-text">
+        <h3>Still need assistance or have custom questions?</h3>
+        <p>Our dedicated admin support desk is ready to help resolve issues or handle system requests.</p>
+      </div>
+      <a routerLink="/support" class="btn btn-support">🎧 Contact Support</a>
+    </div>
+  </div>
+
+  <!-- ARTICLE GUIDE MODAL -->
+  <div class="modal-backdrop" *ngIf="selectedArticle" (click)="closeModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-row">
+          <span class="modal-icon">{{ selectedArticle.icon }}</span>
+          <div>
+            <h2>{{ selectedArticle.title }}</h2>
+            <span class="modal-category">{{ selectedArticle.category }}</span>
+          </div>
+        </div>
+        <button class="close-btn" (click)="closeModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-summary-text">{{ selectedArticle.summary }}</p>
+
+        <h4 class="steps-heading">Step-by-Step Instructions:</h4>
+        <ol class="steps-list">
+          <li *ngFor="let step of selectedArticle.steps">
+            {{ step }}
+          </li>
+        </ol>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeModal()">Close Guide</button>
+      </div>
+    </div>
   </div>
 </div>

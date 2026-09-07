@@ -8,6 +8,8 @@ import { AttendanceComponent } from './features/attendance/attendance.component'
 import { LeaveComponent } from './features/leave/leave.component';
 import { PayrollComponent } from './features/payroll/payroll.component';
 import { HelpCenterComponent } from './features/help/help-center.component';
+import { SupportComponent } from './features/support/support.component';
+import { SettingsComponent } from './features/settings/settings.component';
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
@@ -60,6 +62,16 @@ export const routes: Routes = [
         path: 'help',
         component: HelpCenterComponent,
         data: { module: 'help', page: 'help-center' }
+      },
+      {
+        path: 'support',
+        component: SupportComponent,
+        data: { module: 'support', page: 'contact-support' }
+      },
+      {
+        path: 'settings',
+        component: SettingsComponent,
+        data: { module: 'settings', page: 'user-settings' }
       }
     ]
   },

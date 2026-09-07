@@ -69,6 +69,39 @@ public static class DbInitializer
                 display_name VARCHAR(150) NOT NULL,
                 CONSTRAINT unique_page_functionality UNIQUE(page_id, key)
             );
+
+            CREATE TABLE IF NOT EXISTS notifications (
+                id SERIAL PRIMARY KEY,
+                user_id INT REFERENCES users(id) ON DELETE CASCADE,
+                title VARCHAR(150) NOT NULL,
+                message TEXT NOT NULL,
+                type VARCHAR(50) NOT NULL DEFAULT 'info',
+                is_read BOOLEAN NOT NULL DEFAULT FALSE,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+
+            CREATE TABLE IF NOT EXISTS support_tickets (
+                id SERIAL PRIMARY KEY,
+                user_id INT REFERENCES users(id) ON DELETE CASCADE,
+                subject VARCHAR(200) NOT NULL,
+                category VARCHAR(100) NOT NULL DEFAULT 'General',
+                priority VARCHAR(20) NOT NULL DEFAULT 'Medium',
+                message TEXT NOT NULL,
+                status VARCHAR(20) NOT NULL DEFAULT 'Open',
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+
+            CREATE TABLE IF NOT EXISTS payroll (
+                id SERIAL PRIMARY KEY,
+                employee_id INT NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+                pay_period VARCHAR(20) NOT NULL,
+                base_salary NUMERIC(12,2) NOT NULL DEFAULT 0,
+                allowances NUMERIC(12,2) NOT NULL DEFAULT 0,
+                deductions NUMERIC(12,2) NOT NULL DEFAULT 0,
+                net_pay NUMERIC(12,2) NOT NULL DEFAULT 0,
+                status VARCHAR(20) NOT NULL DEFAULT 'Processed',
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
         ");
 
         // Migration check for existing help_contexts table with string keys

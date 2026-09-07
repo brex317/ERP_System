@@ -1,163 +1,52 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { AttendanceService } from '../../core/services/attendance.service';
+import { EmployeeService } from '../../core/services/employee.service';
 import { AttendanceDto } from '../../core/models/attendance.model';
+import { EmployeeDto } from '../../core/models/employee.model';
 import { FunctionalityHelpComponent } from '../../shared/components/functionality-help/functionality-help.component';
 
 @Component({
   selector: 'app-attendance',
   standalone: true,
-  imports: [CommonModule, FunctionalityHelpComponent],
-  template: `
-    <div class="page-header">
-      <h1>Attendance</h1>
-      <p>Track and manage employee attendance.</p>
-    </div>
-
-    <div class="card">
-      <div class="card-header">
-        <h2>Today's Attendance</h2>
-        <app-functionality-help></app-functionality-help>
-      </div>
-
-      <div *ngIf="isLoading" class="loading-container">
-        <span class="spinner"></span> Loading attendance records from database...
-      </div>
-
-      <div *ngIf="!isLoading" class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Employee Name</th>
-              <th>Date</th>
-              <th>Check In</th>
-              <th>Check Out</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let rec of records">
-              <td><strong>{{ rec.employeeName || ('Employee #' + rec.employeeId) }}</strong></td>
-              <td>{{ rec.date | date:'mediumDate' }}</td>
-              <td>{{ rec.checkIn || '-' }}</td>
-              <td>{{ rec.checkOut || '-' }}</td>
-              <td>
-                <span class="status" [ngClass]="rec.status.toLowerCase().replace(' ', '-')">{{ rec.status }}</span>
-              </td>
-            </tr>
-            <tr *ngIf="records.length === 0">
-              <td colspan="5" class="empty-state">No attendance records found for today.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `,
-  styles: [`
-    .page-header {
-        margin-bottom: 25px;
-    }
-    .page-header h1 {
-        font-size: 26px;
-        margin-bottom: 6px;
-    }
-    .page-header p {
-        color: #64748b;
-        font-size: 14px;
-    }
-    .card {
-        background: white;
-        border: 1px solid #e2e8f0;
-        border-radius: 10px;
-        margin-bottom: 20px;
-        overflow: visible;
-    }
-    .card-header {
-        padding: 18px 20px;
-        border-bottom: 1px solid #e2e8f0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        position: relative;
-        gap: 12px;
-    }
-    .card-header h2 {
-        font-size: 16px;
-    }
-    .table-container {
-        overflow-x: auto;
-    }
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    th, td {
-        padding: 13px 15px;
-        border-bottom: 1px solid #f1f5f9;
-        text-align: left;
-        font-size: 13px;
-    }
-    th {
-        color: #64748b;
-        font-weight: 600;
-        background: #f8fafc;
-    }
-    .status {
-        padding: 4px 9px;
-        border-radius: 20px;
-        font-size: 11px;
-        background: #ecfdf5;
-        color: #047857;
-    }
-    .status.late {
-        background: #fffbeb;
-        color: #b45309;
-    }
-    .status.on-leave {
-        background: #eff6ff;
-        color: #1d4ed8;
-    }
-    .loading-container {
-        padding: 30px;
-        text-align: center;
-        color: #64748b;
-        font-size: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-    }
-    .spinner {
-        width: 16px;
-        height: 16px;
-        border: 2px solid #cbd5e1;
-        border-top-color: #2563eb;
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin {
-        to { transform: rotate(360deg); }
-    }
-    .empty-state {
-        text-align: center;
-        color: #94a3b8;
-        padding: 24px;
-    }
-  `]
+  imports: [CommonModule, FormsModule, FunctionalityHelpComponent],
+  templateUrl: './attendance.component.html',
+  styleUrls: ['./attendance.component.css']
 })
 export class AttendanceComponent implements OnInit {
   records: AttendanceDto[] = [];
+  employees: EmployeeDto[] = [];
   isLoading: boolean = true;
+  selectedDate: string = new Date().toISOString().substring(0, 10);
+  statusFilter: string = 'All';
 
-  constructor(private attendanceService: AttendanceService) {}
+  // Manual Log Modal State
+  isModalOpen: boolean = false;
+  isSubmitting: boolean = false;
+  errorMessage: string = '';
+
+  newRecord: Partial<AttendanceDto> = {
+    employeeId: undefined,
+    date: new Date().toISOString(),
+    checkIn: '08:30 AM',
+    checkOut: '05:00 PM',
+    status: 'Present'
+  };
+
+  constructor(
+    private attendanceService: AttendanceService,
+    private employeeService: EmployeeService
+  ) {}
 
   ngOnInit(): void {
     this.loadAttendance();
+    this.loadEmployees();
   }
 
   loadAttendance(): void {
     this.isLoading = true;
-    this.attendanceService.getAttendance().subscribe({
+    this.attendanceService.getAttendance(this.selectedDate).subscribe({
       next: (data) => {
         this.records = data;
         this.isLoading = false;
@@ -165,6 +54,90 @@ export class AttendanceComponent implements OnInit {
       error: (err) => {
         console.error('Failed to load attendance:', err);
         this.isLoading = false;
+      }
+    });
+  }
+
+  loadEmployees(): void {
+    this.employeeService.getEmployees().subscribe({
+      next: (data) => {
+        this.employees = data;
+      },
+      error: (err) => console.error('Failed to load employees', err)
+    });
+  }
+
+  get filteredRecords(): AttendanceDto[] {
+    return this.records.filter(r => {
+      const matchesStatus = this.statusFilter === 'All' || r.status === this.statusFilter;
+      return matchesStatus;
+    });
+  }
+
+  get presentCount(): number {
+    return this.records.filter(r => r.status === 'Present').length;
+  }
+
+  get lateCount(): number {
+    return this.records.filter(r => r.status === 'Late').length;
+  }
+
+  get onLeaveCount(): number {
+    return this.records.filter(r => r.status === 'On Leave').length;
+  }
+
+  openLogModal(): void {
+    this.errorMessage = '';
+    this.newRecord = {
+      employeeId: this.employees.length > 0 ? this.employees[0].id : undefined,
+      date: new Date().toISOString(),
+      checkIn: '08:30 AM',
+      checkOut: '05:00 PM',
+      status: 'Present'
+    };
+    this.isModalOpen = true;
+  }
+
+  closeModal(): void {
+    this.isModalOpen = false;
+  }
+
+  quickClockIn(): void {
+    if (this.employees.length === 0) return;
+    const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const payload = {
+      employeeId: this.employees[0].id,
+      date: new Date().toISOString(),
+      checkIn: nowTime,
+      checkOut: '-',
+      status: 'Present'
+    };
+    this.attendanceService.logAttendance(payload).subscribe({
+      next: (rec) => {
+        this.records.unshift(rec);
+      },
+      error: (err) => console.error('Failed clock in', err)
+    });
+  }
+
+  saveAttendanceRecord(): void {
+    if (!this.newRecord.employeeId) {
+      this.errorMessage = 'Please select an employee.';
+      return;
+    }
+
+    this.isSubmitting = true;
+    this.errorMessage = '';
+
+    this.attendanceService.logAttendance(this.newRecord).subscribe({
+      next: (created) => {
+        this.isSubmitting = false;
+        this.closeModal();
+        this.loadAttendance();
+      },
+      error: () => {
+        this.isSubmitting = false;
+        this.errorMessage = 'Failed to log attendance record.';
       }
     });
   }

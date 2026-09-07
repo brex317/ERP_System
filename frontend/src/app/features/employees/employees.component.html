@@ -1,0 +1,130 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Employee Directory</h1>
+    <p class="page-subtitle">Manage personnel records, departments, roles, and status.</p>
+  </div>
+  <button class="btn btn-primary" (click)="openAddModal()">
+    ➕ Add Employee
+  </button>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="header-left-tools">
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="Filter by name, email, department, position..." 
+        [(ngModel)]="searchQuery"
+      />
+    </div>
+    <app-functionality-help></app-functionality-help>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-container">
+    <span class="spinner"></span> Loading employees from server...
+  </div>
+
+  <div *ngIf="!isLoading" class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Employee Name</th>
+          <th>Email</th>
+          <th>Department</th>
+          <th>Position</th>
+          <th>Status</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let emp of filteredEmployees">
+          <td>
+            <div class="user-cell">
+              <div class="avatar-sm">{{ emp.firstName.charAt(0) }}{{ emp.lastName.charAt(0) }}</div>
+              <strong>{{ emp.firstName }} {{ emp.lastName }}</strong>
+            </div>
+          </td>
+          <td>{{ emp.email }}</td>
+          <td>
+            <span class="dept-badge">{{ emp.departmentName || 'Unassigned' }}</span>
+          </td>
+          <td>{{ emp.position || 'Staff' }}</td>
+          <td>
+            <span class="status-badge" [ngClass]="emp.status.toLowerCase()">
+              {{ emp.status }}
+            </span>
+          </td>
+          <td class="text-right">
+            <button class="btn-icon" (click)="openEditModal(emp)" title="Edit Employee">✏️</button>
+            <button class="btn-icon text-danger" (click)="deleteEmployee(emp.id, emp.firstName + ' ' + emp.lastName)" title="Delete Employee">🗑️</button>
+          </td>
+        </tr>
+        <tr *ngIf="filteredEmployees.length === 0">
+          <td colspan="6" class="empty-state">No employee records match criteria.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ADD / EDIT EMPLOYEE MODAL -->
+<div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ isEditMode ? 'Edit Employee' : 'Add New Employee' }}</h2>
+      <button class="close-btn" (click)="closeModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+
+      <form (ngSubmit)="saveEmployee()">
+        <div class="form-row">
+          <div class="form-group col">
+            <label>First Name *</label>
+            <input type="text" class="form-control" [(ngModel)]="formData.firstName" name="firstName" required>
+          </div>
+          <div class="form-group col">
+            <label>Last Name *</label>
+            <input type="text" class="form-control" [(ngModel)]="formData.lastName" name="lastName" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Email Address *</label>
+          <input type="email" class="form-control" [(ngModel)]="formData.email" name="email" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col">
+            <label>Department</label>
+            <select class="form-control" [(ngModel)]="formData.departmentId" name="departmentId">
+              <option [ngValue]="undefined">Select Department</option>
+              <option *ngFor="let dept of departments" [value]="dept.id">{{ dept.name }}</option>
+            </select>
+          </div>
+          <div class="form-group col">
+            <label>Position / Job Title</label>
+            <input type="text" class="form-control" [(ngModel)]="formData.position" name="position" placeholder="Software Engineer">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Status</label>
+          <select class="form-control" [(ngModel)]="formData.status" name="status">
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="isSubmitting">
+            {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Update Employee' : 'Create Employee') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

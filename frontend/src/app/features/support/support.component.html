@@ -1,0 +1,88 @@
+<div class="support-container">
+  <div class="support-header">
+    <div>
+      <h1 class="page-title">Contact Support & Help Desk</h1>
+      <p class="page-subtitle">Submit tickets, track issue status, or contact system administrators.</p>
+    </div>
+    <a routerLink="/help" class="btn btn-secondary">📖 View Help Center</a>
+  </div>
+
+  <div class="support-grid">
+    <!-- Submit Ticket Card -->
+    <div class="card form-card">
+      <h2 class="card-title">🎧 Submit New Ticket</h2>
+
+      <div *ngIf="successMessage" class="alert alert-success">
+        {{ successMessage }}
+      </div>
+      <div *ngIf="errorMessage" class="alert alert-danger">
+        {{ errorMessage }}
+      </div>
+
+      <form (ngSubmit)="submitTicket()">
+        <div class="form-group">
+          <label>Ticket Subject *</label>
+          <input type="text" class="form-control" [(ngModel)]="newTicket.subject" name="subject" placeholder="Brief description of the issue" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col">
+            <label>Category *</label>
+            <select class="form-control" [(ngModel)]="newTicket.category" name="category">
+              <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+            </select>
+          </div>
+          <div class="form-group col">
+            <label>Priority *</label>
+            <select class="form-control" [(ngModel)]="newTicket.priority" name="priority">
+              <option *ngFor="let prio of priorities" [value]="prio">{{ prio }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Detailed Message *</label>
+          <textarea class="form-control" [(ngModel)]="newTicket.message" name="message" rows="4" placeholder="Describe the steps to reproduce or issue details..." required></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Submitting...' : '📩 Submit Ticket' }}
+        </button>
+      </form>
+    </div>
+
+    <!-- Ticket History -->
+    <div class="card history-card">
+      <h2 class="card-title">📜 My Support Tickets</h2>
+
+      <div *ngIf="isLoading" class="loading-spinner">Loading tickets...</div>
+
+      <div *ngIf="!isLoading && tickets.length === 0" class="empty-state">
+        <p>No support tickets submitted yet.</p>
+      </div>
+
+      <div class="ticket-list" *ngIf="!isLoading && tickets.length > 0">
+        <div *ngFor="let ticket of tickets" class="ticket-item">
+          <div class="ticket-header-row">
+            <span class="ticket-id">#TICK-{{ ticket.id }}</span>
+            <span class="status-badge" [ngClass]="'status-' + ticket.status.toLowerCase().replace(' ', '-')">
+              {{ ticket.status }}
+            </span>
+          </div>
+          <h3 class="ticket-subject">{{ ticket.subject }}</h3>
+          <p class="ticket-msg">{{ ticket.message }}</p>
+
+          <div class="ticket-meta">
+            <span class="meta-tag">{{ ticket.category }}</span>
+            <span class="meta-tag priority-tag" [ngClass]="'prio-' + ticket.priority.toLowerCase()">{{ ticket.priority }} Priority</span>
+            <span class="meta-date">{{ ticket.createdAt | date:'shortDate' }}</span>
+          </div>
+
+          <div *ngIf="ticket.adminNotes" class="admin-reply">
+            <strong>Admin Note:</strong> {{ ticket.adminNotes }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

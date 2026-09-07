@@ -1,172 +1,49 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { EmployeeService } from '../../core/services/employee.service';
-import { EmployeeDto } from '../../core/models/employee.model';
+import { DepartmentService } from '../../core/services/department.service';
+import { EmployeeDto, CreateEmployeeDto } from '../../core/models/employee.model';
+import { DepartmentDto } from '../../core/models/department.model';
 import { FunctionalityHelpComponent } from '../../shared/components/functionality-help/functionality-help.component';
 
 @Component({
   selector: 'app-employees',
   standalone: true,
-  imports: [CommonModule, FunctionalityHelpComponent],
-  template: `
-    <div class="page-header">
-      <h1>Employees</h1>
-      <p>Manage employee information and records.</p>
-    </div>
-
-    <div class="card">
-      <div class="card-header">
-        <h2>Employee List</h2>
-        <button class="primary-btn" (click)="addEmployee()">
-          + Add Employee
-        </button>
-
-        <app-functionality-help></app-functionality-help>
-      </div>
-
-      <div *ngIf="isLoading" class="loading-container">
-        <span class="spinner"></span> Loading employees from database...
-      </div>
-
-      <div *ngIf="!isLoading" class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Employee Name</th>
-              <th>Email</th>
-              <th>Department</th>
-              <th>Position</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let emp of employees">
-              <td><strong>{{ emp.firstName }} {{ emp.lastName }}</strong></td>
-              <td>{{ emp.email }}</td>
-              <td>{{ emp.departmentName || 'General' }}</td>
-              <td>{{ emp.position || 'Employee' }}</td>
-              <td>
-                <span class="status" [ngClass]="emp.status.toLowerCase()">{{ emp.status }}</span>
-              </td>
-            </tr>
-            <tr *ngIf="employees.length === 0">
-              <td colspan="5" class="empty-state">No employees found in database.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `,
-  styles: [`
-    .page-header {
-        margin-bottom: 25px;
-    }
-    .page-header h1 {
-        font-size: 26px;
-        margin-bottom: 6px;
-    }
-    .page-header p {
-        color: #64748b;
-        font-size: 14px;
-    }
-    .card {
-        background: white;
-        border: 1px solid #e2e8f0;
-        border-radius: 10px;
-        margin-bottom: 20px;
-        overflow: visible;
-    }
-    .card-header {
-        padding: 18px 20px;
-        border-bottom: 1px solid #e2e8f0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        position: relative;
-        gap: 12px;
-    }
-    .card-header h2 {
-        font-size: 16px;
-    }
-    .primary-btn {
-        border: none;
-        background: #2563eb;
-        color: white;
-        padding: 9px 15px;
-        border-radius: 7px;
-        font-size: 13px;
-        transition: .2s;
-        cursor: pointer;
-    }
-    .primary-btn:hover {
-        background: #1d4ed8;
-        transform: translateY(-1px);
-    }
-    .table-container {
-        overflow-x: auto;
-    }
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    th, td {
-        padding: 13px 15px;
-        border-bottom: 1px solid #f1f5f9;
-        text-align: left;
-        font-size: 13px;
-    }
-    th {
-        color: #64748b;
-        font-weight: 600;
-        background: #f8fafc;
-    }
-    .status {
-        padding: 4px 9px;
-        border-radius: 20px;
-        font-size: 11px;
-        background: #ecfdf5;
-        color: #047857;
-    }
-    .status.inactive {
-        background: #fef2f2;
-        color: #dc2626;
-    }
-    .loading-container {
-        padding: 30px;
-        text-align: center;
-        color: #64748b;
-        font-size: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-    }
-    .spinner {
-        width: 16px;
-        height: 16px;
-        border: 2px solid #cbd5e1;
-        border-top-color: #2563eb;
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin {
-        to { transform: rotate(360deg); }
-    }
-    .empty-state {
-        text-align: center;
-        color: #94a3b8;
-        padding: 24px;
-    }
-  `]
+  imports: [CommonModule, FormsModule, FunctionalityHelpComponent],
+  templateUrl: './employees.component.html',
+  styleUrls: ['./employees.component.css']
 })
 export class EmployeesComponent implements OnInit {
   employees: EmployeeDto[] = [];
+  departments: DepartmentDto[] = [];
   isLoading: boolean = true;
+  searchQuery: string = '';
 
-  constructor(private employeeService: EmployeeService) {}
+  // Modal State
+  isModalOpen: boolean = false;
+  isEditMode: boolean = false;
+  editingEmployeeId: number | null = null;
+  isSubmitting: boolean = false;
+  errorMessage: string = '';
+
+  formData: CreateEmployeeDto = {
+    firstName: '',
+    lastName: '',
+    email: '',
+    departmentId: undefined,
+    position: '',
+    status: 'Active'
+  };
+
+  constructor(
+    private employeeService: EmployeeService,
+    private departmentService: DepartmentService
+  ) {}
 
   ngOnInit(): void {
     this.loadEmployees();
+    this.loadDepartments();
   }
 
   loadEmployees(): void {
@@ -183,7 +60,105 @@ export class EmployeesComponent implements OnInit {
     });
   }
 
-  addEmployee(): void {
-    alert('Add Employee feature triggered');
+  loadDepartments(): void {
+    this.departmentService.getDepartments().subscribe({
+      next: (data) => {
+        this.departments = data;
+      },
+      error: (err) => console.error('Failed to load departments', err)
+    });
+  }
+
+  get filteredEmployees(): EmployeeDto[] {
+    if (!this.searchQuery.trim()) return this.employees;
+    const q = this.searchQuery.toLowerCase();
+    return this.employees.filter(e =>
+      e.firstName.toLowerCase().includes(q) ||
+      e.lastName.toLowerCase().includes(q) ||
+      e.email.toLowerCase().includes(q) ||
+      (e.departmentName && e.departmentName.toLowerCase().includes(q)) ||
+      (e.position && e.position.toLowerCase().includes(q))
+    );
+  }
+
+  openAddModal(): void {
+    this.isEditMode = false;
+    this.editingEmployeeId = null;
+    this.errorMessage = '';
+    this.formData = {
+      firstName: '',
+      lastName: '',
+      email: '',
+      departmentId: this.departments.length > 0 ? this.departments[0].id : undefined,
+      position: '',
+      status: 'Active'
+    };
+    this.isModalOpen = true;
+  }
+
+  openEditModal(emp: EmployeeDto): void {
+    this.isEditMode = true;
+    this.editingEmployeeId = emp.id;
+    this.errorMessage = '';
+    this.formData = {
+      firstName: emp.firstName,
+      lastName: emp.lastName,
+      email: emp.email,
+      departmentId: emp.departmentId,
+      position: emp.position || '',
+      status: emp.status || 'Active'
+    };
+    this.isModalOpen = true;
+  }
+
+  closeModal(): void {
+    this.isModalOpen = false;
+  }
+
+  saveEmployee(): void {
+    if (!this.formData.firstName.trim() || !this.formData.lastName.trim() || !this.formData.email.trim()) {
+      this.errorMessage = 'First name, last name, and email are required.';
+      return;
+    }
+
+    this.isSubmitting = true;
+    this.errorMessage = '';
+
+    if (this.isEditMode && this.editingEmployeeId) {
+      this.employeeService.updateEmployee(this.editingEmployeeId, this.formData).subscribe({
+        next: () => {
+          this.isSubmitting = false;
+          this.closeModal();
+          this.loadEmployees();
+        },
+        error: (err) => {
+          this.isSubmitting = false;
+          this.errorMessage = 'Failed to update employee.';
+        }
+      });
+    } else {
+      this.employeeService.createEmployee(this.formData).subscribe({
+        next: (created) => {
+          this.isSubmitting = false;
+          this.closeModal();
+          this.employees.unshift(created);
+        },
+        error: (err) => {
+          this.isSubmitting = false;
+          this.errorMessage = 'Failed to create employee.';
+        }
+      });
+    }
+  }
+
+  deleteEmployee(id: number, name: string): void {
+    if (confirm(`Are you sure you want to delete employee ${name}?`)) {
+      this.employeeService.deleteEmployee(id).subscribe({
+        next: () => {
+          this.employees = this.employees.filter(e => e.id !== id);
+        },
+        error: (err) => console.error('Failed to delete employee', err)
+      });
+    }
   }
 }

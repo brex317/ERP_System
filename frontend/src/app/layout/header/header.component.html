@@ -1,34 +1,133 @@
 <header class="header">
   <div class="header-left">
-    <button class="mobile-menu" (click)="onToggleSidebar()">☰</button>
-    <div class="system-title">Dashboard</div>
+    <button class="mobile-menu" (click)="onToggleSidebar()" aria-label="Toggle Sidebar">☰</button>
+    <div class="system-title">
+      <span class="system-badge">EMS</span>
+      <span class="system-name">RARAS Platform</span>
+    </div>
+  </div>
+
+  <!-- Global Search Container -->
+  <div class="search-container">
+    <div class="search-input-wrapper">
+      <span class="search-icon">🔍</span>
+      <input 
+        type="text" 
+        class="header-search" 
+        placeholder="Search employees, departments, payroll, leave, help..." 
+        [(ngModel)]="searchQuery" 
+        (input)="onSearchInput()"
+        (focus)="onSearchInput()"
+      />
+    </div>
+
+    <!-- Search Results Dropdown -->
+    <div class="search-dropdown" *ngIf="isSearchOpen">
+      <div *ngIf="isSearching" class="search-loading">
+        <span class="spinner-sm"></span> Searching platform...
+      </div>
+
+      <div *ngIf="!isSearching && searchResults.length === 0" class="search-empty">
+        No matching records or modules found for "{{ searchQuery }}"
+      </div>
+
+      <div *ngIf="!isSearching && searchResults.length > 0" class="search-results-list">
+        <div 
+          *ngFor="let item of searchResults" 
+          class="search-item" 
+          (click)="navigateToResult(item)"
+        >
+          <div class="search-item-header">
+            <span class="search-item-title">{{ item.title }}</span>
+            <span class="category-badge">{{ item.category }}</span>
+          </div>
+          <div class="search-item-sub">{{ item.subtitle }}</div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="header-right">
-    <input class="header-search" placeholder="Search...">
+    <!-- Help Center Button -->
+    <button class="header-btn" routerLink="/help" title="Help Center">❓</button>
 
-    <button class="header-btn" routerLink="/help" title="Help Center">?</button>
-    <button class="header-btn" title="Notifications">🔔</button>
+    <!-- Notifications Bell Button -->
+    <div class="notification-container">
+      <button class="header-btn notification-btn" (click)="toggleNotifications()" title="Notifications">
+        🔔
+        <span class="badge" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
+      </button>
 
-    <div class="profile-container" *ngIf="currentUser">
-      <div class="profile" (click)="toggleProfileMenu()" tabindex="0" role="button" aria-haspopup="true">
+      <!-- Notifications Panel Dropdown -->
+      <div class="notification-dropdown" *ngIf="isNotificationsOpen">
+        <div class="notification-header">
+          <h3>Notifications</h3>
+          <button class="mark-all-btn" (click)="markAllNotificationsAsRead()" *ngIf="unreadCount > 0">
+            Mark all read
+          </button>
+        </div>
+
+        <div class="notification-list">
+          <div *ngIf="notifications.length === 0" class="notification-empty">
+            No notifications available
+          </div>
+
+          <div 
+            *ngFor="let notif of notifications" 
+            class="notification-item" 
+            [class.unread]="!notif.isRead"
+          >
+            <div class="notif-content">
+              <div class="notif-title">{{ notif.title }}</div>
+              <div class="notif-msg">{{ notif.message }}</div>
+              <div class="notif-time">{{ notif.createdAt | date:'short' }}</div>
+            </div>
+            <button 
+              *ngIf="!notif.isRead" 
+              class="read-check-btn" 
+              (click)="markNotificationAsRead(notif.id, $event)" 
+              title="Mark as read"
+            >
+              ✓
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Admin Profile Dropdown (ALWAYS VISIBLE) -->
+    <div class="profile-container">
+      <div class="profile-trigger" (click)="toggleProfileMenu()" tabindex="0" role="button" aria-haspopup="true">
         <div class="avatar">{{ currentUser.initials }}</div>
         <div class="profile-info">
           <span class="user-name">{{ currentUser.name }}</span>
           <span class="user-role">{{ currentUser.role }}</span>
         </div>
-        <span class="dropdown-arrow">▾</span>
+        <span class="dropdown-chevron">▼</span>
       </div>
 
       <div class="profile-dropdown" *ngIf="isProfileMenuOpen">
         <div class="dropdown-header">
-          <p class="dropdown-name">{{ currentUser.name }}</p>
-          <p class="dropdown-email">{{ currentUser.email }}</p>
-          <span class="role-badge">{{ currentUser.role }}</span>
+          <div class="dropdown-avatar">{{ currentUser.initials }}</div>
+          <div>
+            <p class="dropdown-name">{{ currentUser.name }}</p>
+            <p class="dropdown-email">{{ currentUser.email }}</p>
+            <span class="role-badge">{{ currentUser.role }}</span>
+          </div>
         </div>
         <div class="dropdown-divider"></div>
+        <a class="dropdown-item" routerLink="/settings" (click)="isProfileMenuOpen = false">
+          <span class="menu-icon">⚙️</span> System Settings
+        </a>
+        <a class="dropdown-item" routerLink="/support" (click)="isProfileMenuOpen = false">
+          <span class="menu-icon">🎧</span> Contact Support
+        </a>
+        <a class="dropdown-item" routerLink="/help" (click)="isProfileMenuOpen = false">
+          <span class="menu-icon">📖</span> Help Center
+        </a>
+        <div class="dropdown-divider"></div>
         <button class="dropdown-item logout-btn" (click)="onLogout()">
-          <span class="logout-icon">🚪</span> Log Out
+          <span class="menu-icon">🚪</span> Log Out
         </button>
       </div>
     </div>

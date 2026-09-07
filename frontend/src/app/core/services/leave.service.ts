@@ -28,8 +28,6 @@ export class LeaveService {
   }
 
   updateLeaveStatus(id: number, status: string): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/${id}/status`, JSON.stringify(status), {
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return this.http.put<void>(`${this.apiUrl}/${id}/status`, { status });
   }
 }

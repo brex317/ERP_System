@@ -1,0 +1,92 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Departments Management</h1>
+    <p class="page-subtitle">Configure organizational structure, department codes, and units.</p>
+  </div>
+  <button class="btn btn-primary" (click)="openAddModal()">
+    ➕ Add Department
+  </button>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="header-left-tools">
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="Filter by name or code..." 
+        [(ngModel)]="searchQuery"
+      />
+    </div>
+    <app-functionality-help></app-functionality-help>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-container">
+    <span class="spinner"></span> Loading departments from database...
+  </div>
+
+  <div *ngIf="!isLoading" class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Department Name</th>
+          <th>Description</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let dept of filteredDepartments">
+          <td><span class="dept-code-badge">{{ dept.code || 'DEPT' }}</span></td>
+          <td><strong>{{ dept.name }}</strong></td>
+          <td>{{ dept.description || 'N/A' }}</td>
+          <td class="text-right">
+            <button class="btn-icon" (click)="openEditModal(dept)" title="Edit Department">✏️</button>
+            <button class="btn-icon text-danger" (click)="deleteDepartment(dept.id, dept.name)" title="Delete Department">🗑️</button>
+          </td>
+        </tr>
+        <tr *ngIf="filteredDepartments.length === 0">
+          <td colspan="4" class="empty-state">No departments found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ADD / EDIT DEPARTMENT MODAL -->
+<div class="modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ isEditMode ? 'Edit Department' : 'Add New Department' }}</h2>
+      <button class="close-btn" (click)="closeModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+
+      <form (ngSubmit)="saveDepartment()">
+        <div class="form-group">
+          <label>Department Name *</label>
+          <input type="text" class="form-control" [(ngModel)]="formData.name" name="name" placeholder="e.g. Information Technology" required>
+        </div>
+
+        <div class="form-group">
+          <label>Department Code *</label>
+          <input type="text" class="form-control" [(ngModel)]="formData.code" name="code" placeholder="e.g. IT" required>
+        </div>
+
+        <div class="form-group">
+          <label>Description</label>
+          <textarea class="form-control" [(ngModel)]="formData.description" name="description" rows="3" placeholder="Core functions and responsibilities..."></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="isSubmitting">
+            {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Update Department' : 'Create Department') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
