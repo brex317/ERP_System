@@ -1,45 +1,211 @@
 <div class="page-header">
-  <h1>Payroll</h1>
-  <p>Manage employee payroll information.</p>
+  <div>
+    <h1 class="page-title">Payroll & Salary Processing</h1>
+    <p class="page-subtitle">Calculate monthly compensation, allowances, tax deductions, and generate payslips.</p>
+  </div>
+  <button class="btn btn-primary" (click)="openProcessModal()">
+    💰 Process Payroll
+  </button>
+</div>
+
+<!-- PAYROLL STATS CARDS -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-value text-dark">${{ totalBaseSalary | number:'1.2-2' }}</div>
+    <div class="stat-label">Total Base Salaries</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value text-success">+${{ totalAllowances | number:'1.2-2' }}</div>
+    <div class="stat-label">Total Allowances</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value text-danger">-${{ totalDeductions | number:'1.2-2' }}</div>
+    <div class="stat-label">Total Tax & Deductions</div>
+  </div>
+  <div class="stat-card stat-card-highlight">
+    <div class="stat-value text-primary">${{ totalNetSalary | number:'1.2-2' }}</div>
+    <div class="stat-label">Net Payroll Expense</div>
+  </div>
 </div>
 
 <div class="card">
   <div class="card-header">
-    <h2>Payroll Summary</h2>
+    <div class="header-left-tools">
+      <div class="filter-group">
+        <label>Pay Period:</label>
+        <input type="month" class="form-control-sm" [(ngModel)]="selectedPeriod" (change)="loadPayrollData()">
+      </div>
+    </div>
     <app-functionality-help></app-functionality-help>
   </div>
 
   <div *ngIf="isLoading" class="loading-container">
-    <span class="spinner"></span> Loading payroll data from database...
+    <span class="spinner"></span> Calculating payroll records...
   </div>
 
   <div *ngIf="!isLoading" class="table-container">
     <table>
       <thead>
         <tr>
-          <th>Employee</th>
+          <th>Employee Name</th>
           <th>Department</th>
           <th>Base Salary</th>
           <th>Allowances</th>
           <th>Deductions</th>
-          <th>Net Pay</th>
+          <th>Net Payable</th>
           <th>Status</th>
+          <th class="text-right">Action</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let p of payrolls">
-          <td><strong>{{ p.employeeName }}</strong></td>
-          <td>{{ p.department }}</td>
-          <td>\${{ p.baseSalary | number:'1.2-2' }}</td>
-          <td>\${{ p.allowances | number:'1.2-2' }}</td>
-          <td>\${{ p.deductions | number:'1.2-2' }}</td>
-          <td><strong>\${{ p.netPay | number:'1.2-2' }}</strong></td>
-          <td><span class="status">{{ p.status }}</span></td>
+        <tr *ngFor="let item of payrolls">
+          <td><strong>{{ item.employeeName }}</strong></td>
+          <td><span class="dept-badge">{{ item.departmentName || 'General' }}</span></td>
+          <td>${{ item.baseSalary | number:'1.2-2' }}</td>
+          <td class="text-success">+${{ item.allowances | number:'1.2-2' }}</td>
+          <td class="text-danger">-${{ item.deductions | number:'1.2-2' }}</td>
+          <td><strong>${{ item.netSalary | number:'1.2-2' }}</strong></td>
+          <td>
+            <span class="status-badge" [ngClass]="item.status.toLowerCase()">
+              {{ item.status }}
+            </span>
+          </td>
+          <td class="text-right">
+            <button class="btn-sm btn-secondary" (click)="viewPayslip(item)">📄 Payslip</button>
+          </td>
         </tr>
         <tr *ngIf="payrolls.length === 0">
-          <td colspan="7" class="empty-state">No payroll records available.</td>
+          <td colspan="8" class="empty-state">No payroll records processed for period {{ selectedPeriod }}.</td>
         </tr>
       </tbody>
     </table>
+  </div>
+</div>
+
+<!-- PROCESS PAYROLL MODAL -->
+<div class="modal-backdrop" *ngIf="isProcessModalOpen" (click)="closeProcessModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Process Employee Salary</h2>
+      <button class="close-btn" (click)="closeProcessModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+
+      <form (ngSubmit)="submitProcessPayroll()">
+        <div class="form-group">
+          <label>Select Employee *</label>
+          <select class="form-control" [(ngModel)]="processData.employeeId" name="employeeId">
+            <option *ngFor="let emp of employees" [value]="emp.id">{{ emp.firstName }} {{ emp.lastName }} ({{ emp.departmentName || 'General' }})</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Pay Period *</label>
+          <input type="text" class="form-control" [(ngModel)]="processData.payPeriod" name="payPeriod" placeholder="YYYY-MM">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col">
+            <label>Base Salary ($) *</label>
+            <input type="number" class="form-control" [(ngModel)]="processData.baseSalary" name="baseSalary" min="0" step="100">
+          </div>
+          <div class="form-group col">
+            <label>Allowances ($)</label>
+            <input type="number" class="form-control" [(ngModel)]="processData.allowances" name="allowances" min="0" step="50">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Deductions (Tax, Pension) ($)</label>
+          <input type="number" class="form-control" [(ngModel)]="processData.deductions" name="deductions" min="0" step="50">
+        </div>
+
+        <div class="calculated-preview">
+          <span>Estimated Net Salary:</span>
+          <strong>${{ (processData.baseSalary + processData.allowances - processData.deductions) | number:'1.2-2' }}</strong>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeProcessModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="isSubmitting">
+            {{ isSubmitting ? 'Processing...' : 'Process Salary' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- PAYSLIP MODAL DOCUMENT -->
+<div class="modal-backdrop" *ngIf="selectedPayslip" (click)="closePayslip()">
+  <div class="modal-card payslip-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h2 class="payslip-title">⚡ RARAS PAYSLIP STATEMENT</h2>
+        <span class="payslip-subtitle">Period: {{ selectedPayslip.payPeriod }}</span>
+      </div>
+      <button class="close-btn" (click)="closePayslip()">✕</button>
+    </div>
+
+    <div class="modal-body payslip-body">
+      <div class="payslip-info-grid">
+        <div>
+          <span class="info-label">Employee Name:</span>
+          <strong>{{ selectedPayslip.employeeName }}</strong>
+        </div>
+        <div>
+          <span class="info-label">Department:</span>
+          <strong>{{ selectedPayslip.departmentName || 'General' }}</strong>
+        </div>
+        <div>
+          <span class="info-label">Processed Date:</span>
+          <strong>{{ selectedPayslip.processedDate | date:'mediumDate' }}</strong>
+        </div>
+        <div>
+          <span class="info-label">Payment Status:</span>
+          <span class="status-badge paid">{{ selectedPayslip.status }}</span>
+        </div>
+      </div>
+
+      <table class="payslip-table">
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th class="text-right">Earnings ($)</th>
+            <th class="text-right">Deductions ($)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Basic Salary</td>
+            <td class="text-right">${{ selectedPayslip.baseSalary | number:'1.2-2' }}</td>
+            <td class="text-right">-</td>
+          </tr>
+          <tr>
+            <td>Housing & Transport Allowances</td>
+            <td class="text-right">${{ selectedPayslip.allowances | number:'1.2-2' }}</td>
+            <td class="text-right">-</td>
+          </tr>
+          <tr>
+            <td>Income Tax & Pension Deductions</td>
+            <td class="text-right">-</td>
+            <td class="text-right text-danger">${{ selectedPayslip.deductions | number:'1.2-2' }}</td>
+          </tr>
+          <tr class="summary-row">
+            <td><strong>TOTAL NET PAYABLE</strong></td>
+            <td colspan="2" class="text-right net-amount">
+              ${{ selectedPayslip.netSalary | number:'1.2-2' }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="printPayslip()">🖨️ Print Payslip</button>
+      <button class="btn btn-primary" (click)="closePayslip()">Done</button>
+    </div>
   </div>
 </div>
