@@ -4,7 +4,7 @@ namespace Raras.EMS.API.Repositories;
 
 public interface IHelpRepository
 {
-    Task<HelpContext?> FindByFunctionalityAsync(string moduleKey, string pageKey, string functionalityKey);
-    Task<HelpContext?> FindByPageAsync(string moduleKey, string pageKey);
-    Task<HelpContext?> FindByModuleAsync(string moduleKey);
+    Task<HelpHeader?> FindByFeatureSpecificationAsync(string moduleKey, string featureKey, string featureSpecificationKey);
+    Task<HelpHeader?> FindByFeatureAsync(string moduleKey, string featureKey);
+    Task<HelpHeader?> FindByModuleAsync(string moduleKey);
 }
