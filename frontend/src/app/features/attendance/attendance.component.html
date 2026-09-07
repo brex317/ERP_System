@@ -94,7 +94,10 @@
   <div class="modal-card" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <h2>Log Attendance Record</h2>
-      <button class="close-btn" (click)="closeModal()">✕</button>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <app-functionality-help moduleKey="attendance" pageKey="attendance-list" functionalityKey="manual-entry-correction"></app-functionality-help>
+        <button class="close-btn" (click)="closeModal()">✕</button>
+      </div>
     </div>
 
     <div class="modal-body">

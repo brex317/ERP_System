@@ -58,7 +58,10 @@
   <div class="modal-card" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <h2>{{ isEditMode ? 'Edit Department' : 'Add New Department' }}</h2>
-      <button class="close-btn" (click)="closeModal()">✕</button>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <app-functionality-help moduleKey="departments" pageKey="department-list" functionalityKey="add-department"></app-functionality-help>
+        <button class="close-btn" (click)="closeModal()">✕</button>
+      </div>
     </div>
 
     <div class="modal-body">

@@ -87,7 +87,10 @@
   <div class="modal-card" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <h2>Process Employee Salary</h2>
-      <button class="close-btn" (click)="closeProcessModal()">✕</button>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <app-functionality-help moduleKey="payroll" pageKey="payroll-list" functionalityKey="process-payroll"></app-functionality-help>
+        <button class="close-btn" (click)="closeProcessModal()">✕</button>
+      </div>
     </div>
 
     <div class="modal-body">
