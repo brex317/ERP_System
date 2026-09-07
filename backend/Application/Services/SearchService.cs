@@ -62,21 +62,21 @@ public class SearchService : ISearchService
             });
         }
 
-        // 3. Search System Pages/Modules
-        var pages = await _db.Pages
+        // 3. Search System Features/Modules
+        var features = await _db.Features
             .AsNoTracking()
-            .Where(p => p.DisplayName.ToLower().Contains(q) || p.Key.ToLower().Contains(q))
+            .Where(f => f.DisplayName.ToLower().Contains(q) || f.Key.ToLower().Contains(q))
             .Take(5)
             .ToListAsync();
 
-        foreach (var page in pages)
+        foreach (var feature in features)
         {
             results.Add(new SearchResultItemDto
             {
-                Title = page.DisplayName,
-                Subtitle = $"Page in module",
+                Title = feature.DisplayName,
+                Subtitle = $"Feature in module",
                 Category = "Modules",
-                LinkUrl = page.RoutePath ?? $"/{page.Key}"
+                LinkUrl = feature.RoutePath ?? $"/{feature.Key}"
             });
         }
 

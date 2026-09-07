@@ -9,8 +9,8 @@ public class HelpStepDto
 public class HelpResponseDto
 {
     public string ModuleKey { get; set; } = string.Empty;
-    public string PageKey { get; set; } = string.Empty;
-    public string FunctionalityKey { get; set; } = string.Empty;
+    public string FeatureKey { get; set; } = string.Empty;
+    public string FeatureSpecificationKey { get; set; } = string.Empty;
     public string Title { get; set; } = "Quick steps";
     public List<HelpStepDto> Steps { get; set; } = new();
 }
