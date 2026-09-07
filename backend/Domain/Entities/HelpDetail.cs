@@ -3,19 +3,19 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Raras.EMS.API.Models.Entities;
 
-[Table("help_steps")]
-public class HelpStep
+[Table("help_details")]
+public class HelpDetail
 {
     [Key]
     [Column("id")]
     public int Id { get; set; }
 
     [Required]
-    [Column("help_context_id")]
-    public int HelpContextId { get; set; }
+    [Column("help_header_id")]
+    public int HelpHeaderId { get; set; }
 
-    [ForeignKey(nameof(HelpContextId))]
-    public HelpContext? HelpContext { get; set; }
+    [ForeignKey(nameof(HelpHeaderId))]
+    public HelpHeader? HelpHeader { get; set; }
 
     [Column("step_number")]
     public int StepNumber { get; set; }

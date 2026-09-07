@@ -3,24 +3,24 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Raras.EMS.API.Models.Entities;
 
-[Table("help_contexts")]
-public class HelpContext
+[Table("help_headers")]
+public class HelpHeader
 {
     [Key]
     [Column("id")]
     public int Id { get; set; }
 
-    [Column("functionality_id")]
-    public int? FunctionalityId { get; set; }
+    [Column("feature_specification_id")]
+    public int? FeatureSpecificationId { get; set; }
 
-    [ForeignKey(nameof(FunctionalityId))]
-    public Functionality? Functionality { get; set; }
+    [ForeignKey(nameof(FeatureSpecificationId))]
+    public FeatureSpecification? FeatureSpecification { get; set; }
 
-    [Column("page_id")]
-    public int? PageId { get; set; }
+    [Column("feature_id")]
+    public int? FeatureId { get; set; }
 
-    [ForeignKey(nameof(PageId))]
-    public Page? Page { get; set; }
+    [ForeignKey(nameof(FeatureId))]
+    public Feature? Feature { get; set; }
 
     [Column("module_id")]
     public int? ModuleId { get; set; }
@@ -39,5 +39,5 @@ public class HelpContext
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    public ICollection<HelpStep> Steps { get; set; } = new List<HelpStep>();
+    public ICollection<HelpDetail> Details { get; set; } = new List<HelpDetail>();
 }

@@ -3,19 +3,19 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Raras.EMS.API.Models.Entities;
 
-[Table("functionalities")]
-public class Functionality
+[Table("feature_specifications")]
+public class FeatureSpecification
 {
     [Key]
     [Column("id")]
     public int Id { get; set; }
 
     [Required]
-    [Column("page_id")]
-    public int PageId { get; set; }
+    [Column("feature_id")]
+    public int FeatureId { get; set; }
 
-    [ForeignKey(nameof(PageId))]
-    public Page? Page { get; set; }
+    [ForeignKey(nameof(FeatureId))]
+    public Feature? Feature { get; set; }
 
     [Required]
     [MaxLength(100)]

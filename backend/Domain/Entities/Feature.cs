@@ -3,8 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Raras.EMS.API.Models.Entities;
 
-[Table("pages")]
-public class Page
+[Table("features")]
+public class Feature
 {
     [Key]
     [Column("id")]
@@ -34,5 +34,5 @@ public class Page
     [Column("sort_order")]
     public int SortOrder { get; set; } = 0;
 
-    public ICollection<Functionality> Functionalities { get; set; } = new List<Functionality>();
+    public ICollection<FeatureSpecification> FeatureSpecifications { get; set; } = new List<FeatureSpecification>();
 }

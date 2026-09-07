@@ -30,5 +30,5 @@ public class Module
     [Column("is_active")]
     public bool IsActive { get; set; } = true;
 
-    public ICollection<Page> Pages { get; set; } = new List<Page>();
+    public ICollection<Feature> Features { get; set; } = new List<Feature>();
 }
