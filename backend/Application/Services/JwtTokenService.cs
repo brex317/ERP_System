@@ -1,6 +1,8 @@
-using System.Security.Cryptography;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
-using System.Text.Json;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using Raras.EMS.API.Models.Entities;
 
 namespace Raras.EMS.API.Services;
@@ -8,52 +10,42 @@ namespace Raras.EMS.API.Services;
 public class JwtTokenService : ITokenService
 {
     private readonly string _secretKey;
+    private readonly string _issuer;
+    private readonly string _audience;
 
     public JwtTokenService(IConfiguration configuration)
     {
         _secretKey = configuration["Jwt:SecretKey"] ?? "Raras_EMS_Super_Secret_Jwt_Security_Key_2026_Admin_Auth!";
+        _issuer = configuration["Jwt:Issuer"] ?? "RarasEMS";
+        _audience = configuration["Jwt:Audience"] ?? "RarasEMSClient";
     }
 
     public string GenerateToken(User user)
     {
-        var header = new { alg = "HS256", typ = "JWT" };
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var key = Encoding.UTF8.GetBytes(_secretKey);
 
         var roleName = user.Role?.Name ?? "Admin";
-        var now = DateTimeOffset.UtcNow;
-        var exp = now.AddDays(7).ToUnixTimeSeconds();
-        var iat = now.ToUnixTimeSeconds();
 
-        var payload = new Dictionary<string, object>
+        var claims = new List<Claim>
         {
-            { "sub", user.Id.ToString() },
-            { "email", user.Email },
-            { "username", user.Username },
-            { "name", $"{user.FirstName} {user.LastName}".Trim() },
-            { "role", roleName },
-            { "iat", iat },
-            { "exp", exp }
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim(ClaimTypes.Name, user.Username),
+            new Claim("fullName", $"{user.FirstName} {user.LastName}".Trim()),
+            new Claim(ClaimTypes.Role, roleName)
         };
 
-        string headerJson = JsonSerializer.Serialize(header);
-        string payloadJson = JsonSerializer.Serialize(payload);
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(claims),
+            Expires = DateTime.UtcNow.AddDays(7),
+            Issuer = _issuer,
+            Audience = _audience,
+            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+        };
 
-        string encodedHeader = Base64UrlEncode(Encoding.UTF8.GetBytes(headerJson));
-        string encodedPayload = Base64UrlEncode(Encoding.UTF8.GetBytes(payloadJson));
-
-        string unsignedToken = $"{encodedHeader}.{encodedPayload}";
-
-        using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(_secretKey));
-        byte[] signatureBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(unsignedToken));
-        string encodedSignature = Base64UrlEncode(signatureBytes);
-
-        return $"{unsignedToken}.{encodedSignature}";
-    }
-
-    private static string Base64UrlEncode(byte[] input)
-    {
-        return Convert.ToBase64String(input)
-            .TrimEnd('=')
-            .Replace('+', '-')
-            .Replace('/', '_');
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+        return tokenHandler.WriteToken(token);
     }
 }
